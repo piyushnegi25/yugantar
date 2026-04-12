@@ -8,7 +8,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { InitializeLocalStorage } from "@/components/initialize-storage";
-import { createMetadata, generateOrganizationStructuredData } from "@/lib/seo";
+import {
+  createMetadata,
+  generateLocalBusinessStructuredData,
+  generateOrganizationStructuredData,
+  generateWebsiteStructuredData,
+} from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,30 +22,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = createMetadata({
-  title: "Premium Custom T-Shirts | Anime, Meme & Personalized Designs",
+  title: "Buy Premium T-Shirts Online in India",
   description:
-    "Premium custom t-shirts with anime, meme & personalized designs. Quality organic cotton, XS-5XL sizing, fast India shipping.",
+    "Shop premium t-shirts online in India. Anime tees, meme t-shirts, oversized streetwear and custom printed t-shirts with fast shipping.",
   keywords: [
-    "custom t-shirts India",
-    "anime t-shirts online",
-    "meme t-shirts designs",
-    "personalized clothing India",
-    "premium t-shirts India",
-    "custom apparel India",
-    "graphic tees online",
-    "organic cotton t-shirts",
-    "plus size t-shirts India",
+    "Yugantar",
+    "buy t-shirts online",
+    "best t-shirt website India",
     "streetwear India",
-    "otaku clothing",
-    "internet culture fashion",
-    "unique t-shirt designs",
-    "quality t-shirts India",
-    "fast shipping t-shirts",
-    "affordable custom tees",
-    "trendy t-shirts India",
-    "StyleSage t-shirts",
-    "online t-shirt store India",
-    "custom printing India",
+    "premium t-shirts",
+    "oversized tees",
+    "anime t-shirts",
+    "meme t-shirts",
+    "custom t-shirts India",
   ],
 });
 
@@ -61,6 +55,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const organizationSchema = generateOrganizationStructuredData();
+  const websiteSchema = generateWebsiteStructuredData();
+  const localBusinessSchema = generateLocalBusinessStructuredData();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -84,21 +80,22 @@ export default function RootLayout({
         {/* Favicons */}
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* Performance hints */}
-        <link
-          rel="preload"
-          href="/fonts/inter-var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-
         {/* SEO meta tags */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="geo.region" content="IN-UP" />
         <meta name="geo.placename" content="Noida" />
         <meta name="geo.position" content="28.6139;77.2090" />
         <meta name="ICBM" content="28.6139, 77.2090" />
+        <meta name="googlebot-news" content="index,follow" />
+        <meta
+          name="classification"
+          content="E-commerce, Fashion, T-Shirts, Streetwear"
+        />
+        <meta name="target" content="India" />
+        <meta name="HandheldFriendly" content="true" />
+        <meta name="MobileOptimized" content="width" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         {/* Structured data for organization */}
         <script
@@ -107,12 +104,24 @@ export default function RootLayout({
             __html: JSON.stringify(organizationSchema),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(localBusinessSchema),
+          }}
+        />
       </head>
       <body className={`${inter.className} ${inter.variable}`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem={true}
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange={false}
         >
           <InitializeLocalStorage />

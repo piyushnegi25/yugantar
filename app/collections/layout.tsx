@@ -1,12 +1,16 @@
-import { Metadata } from "next";
-import { createCategoryMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+import {
+  absoluteUrl,
+  createCategoryMetadata,
+  generateBreadcrumbStructuredData,
+} from "@/lib/seo";
 
 export const metadata: Metadata = createCategoryMetadata({
-  categoryName: "Collections",
+  categoryName: "Graphic and Streetwear",
   description:
-    "Explore our curated collections of premium t-shirts featuring anime, meme, and custom designs. Discover unique styles that express your personality.",
+    "Explore curated premium t-shirt collections in India featuring anime, meme, oversized streetwear and custom designs.",
   path: "/collections",
-  productCount: 50,
+  productCount: 100,
 });
 
 export default function CollectionsLayout({
@@ -17,37 +21,44 @@ export default function CollectionsLayout({
   const collectionsStructuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Premium T-Shirt Collections",
+    name: "Premium T-Shirt Collections India",
     description:
-      "Curated collections of premium custom t-shirts featuring anime, meme, and personalized designs for every style and personality.",
-    url: "https://stylesage.com/collections",
+      "Curated collections of premium custom t-shirts featuring anime, meme, streetwear and personalized designs.",
+    url: absoluteUrl("/collections"),
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: generateBreadcrumbStructuredData([
+        { name: "Home", url: "/" },
+        { name: "Collections", url: "/collections" },
+      ]).itemListElement,
+    },
     isPartOf: {
       "@type": "WebSite",
-      name: "StyleSage",
-      url: "https://stylesage.com",
+      name: "Yugantar",
+      url: absoluteUrl(),
     },
     mainEntity: {
       "@type": "ItemList",
       name: "All T-Shirt Collections",
-      numberOfItems: 50,
+      numberOfItems: 100,
       itemListElement: [
         {
           "@type": "Collection",
           name: "Anime Collection",
           description: "Premium anime-inspired t-shirt designs",
-          url: "https://stylesage.com/anime",
+          url: absoluteUrl("/anime"),
         },
         {
           "@type": "Collection",
           name: "Meme Collection",
           description: "Hilarious internet meme t-shirts",
-          url: "https://stylesage.com/meme",
+          url: absoluteUrl("/meme"),
         },
         {
           "@type": "Collection",
           name: "Custom Designs",
           description: "Personalized t-shirts with your own designs",
-          url: "https://stylesage.com/custom",
+          url: absoluteUrl("/custom"),
         },
       ],
     },

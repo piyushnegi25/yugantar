@@ -1,12 +1,16 @@
-import { Metadata } from "next";
-import { createCategoryMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+import {
+  absoluteUrl,
+  createCategoryMetadata,
+  generateBreadcrumbStructuredData,
+} from "@/lib/seo";
 
 export const metadata: Metadata = createCategoryMetadata({
   categoryName: "Meme",
   description:
-    "Showcase your internet culture knowledge with hilarious meme t-shirts. Featuring viral classics like Distracted Boyfriend, This is Fine Dog, and trending memes.",
+    "Buy meme t-shirts online in India. Discover viral internet culture tees, funny graphic designs and premium quality meme apparel.",
   path: "/meme",
-  productCount: 15,
+  productCount: 25,
 });
 
 export default function MemeLayout({
@@ -17,19 +21,26 @@ export default function MemeLayout({
   const memeStructuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Meme T-Shirts Collection",
+    name: "Meme T-Shirts Collection India",
     description:
       "Hilarious meme-inspired t-shirt designs featuring viral internet classics and trending memes. Perfect for expressing your digital culture knowledge.",
-    url: "https://stylesage.com/meme",
+    url: absoluteUrl("/meme"),
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: generateBreadcrumbStructuredData([
+        { name: "Home", url: "/" },
+        { name: "Meme T-Shirts", url: "/meme" },
+      ]).itemListElement,
+    },
     isPartOf: {
       "@type": "WebSite",
-      name: "StyleSage",
-      url: "https://stylesage.com",
+      name: "Yugantar",
+      url: absoluteUrl(),
     },
     mainEntity: {
       "@type": "ItemList",
       name: "Meme T-Shirts",
-      numberOfItems: 15,
+      numberOfItems: 25,
       itemListElement: [
         {
           "@type": "Product",

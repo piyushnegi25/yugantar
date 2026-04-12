@@ -1,12 +1,16 @@
-import { Metadata } from "next";
-import { createCategoryMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+import {
+  absoluteUrl,
+  createCategoryMetadata,
+  generateBreadcrumbStructuredData,
+} from "@/lib/seo";
 
 export const metadata: Metadata = createCategoryMetadata({
   categoryName: "Anime",
   description:
-    "Express your otaku spirit with our premium anime-inspired t-shirt designs. From classic series like Naruto, Dragon Ball Z, Attack on Titan to the latest hits.",
+    "Buy anime t-shirts online in India. Shop Naruto, Dragon Ball Z, Attack on Titan, Demon Slayer and more premium anime-inspired graphic tees.",
   path: "/anime",
-  productCount: 20,
+  productCount: 30,
 });
 
 export default function AnimeLayout({
@@ -17,19 +21,26 @@ export default function AnimeLayout({
   const animeStructuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Anime T-Shirts Collection",
+    name: "Anime T-Shirts Collection India",
     description:
       "Premium anime-inspired t-shirt designs featuring popular series like Naruto, Dragon Ball Z, Attack on Titan, and more.",
-    url: "https://stylesage.com/anime",
+    url: absoluteUrl("/anime"),
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: generateBreadcrumbStructuredData([
+        { name: "Home", url: "/" },
+        { name: "Anime T-Shirts", url: "/anime" },
+      ]).itemListElement,
+    },
     isPartOf: {
       "@type": "WebSite",
-      name: "StyleSage",
-      url: "https://stylesage.com",
+      name: "Yugantar",
+      url: absoluteUrl(),
     },
     mainEntity: {
       "@type": "ItemList",
       name: "Anime T-Shirts",
-      numberOfItems: 20,
+      numberOfItems: 30,
       itemListElement: [
         {
           "@type": "Product",

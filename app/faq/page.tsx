@@ -1,5 +1,10 @@
 import { Metadata } from "next";
-import { createMetadata, generateFAQStructuredData } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createMetadata,
+  generateBreadcrumbStructuredData,
+  generateFAQStructuredData,
+} from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
@@ -10,17 +15,20 @@ import {
 import Link from "next/link";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 
+const SUPPORT_EMAIL = "support@stylesage.com";
+
 export const metadata: Metadata = createMetadata({
-  title: "Frequently Asked Questions - StyleSage T-Shirts",
+  title: "FAQ - T-Shirt Sizes, Shipping, Returns, Payments",
   description:
-    "Find answers to common questions about our premium custom t-shirts, shipping, sizing, returns, and more. Get help with your StyleSage order.",
+    "Find answers about t-shirt sizes, delivery timelines, returns, payment options, and custom printing at Yugantar.",
   path: "/faq",
   keywords: [
-    "StyleSage FAQ",
+    "Yugantar FAQ",
     "t-shirt questions",
     "shipping info",
     "size guide",
     "returns policy",
+    "t-shirt shipping India",
     "custom t-shirt help",
     "order questions",
     "material information",
@@ -152,6 +160,19 @@ export default function FAQPage() {
   ];
 
   const faqStructuredData = generateFAQStructuredData();
+  const faqPageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Frequently Asked Questions",
+    url: absoluteUrl("/faq"),
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: generateBreadcrumbStructuredData([
+        { name: "Home", url: "/" },
+        { name: "FAQ", url: "/faq" },
+      ]).itemListElement,
+    },
+  };
 
   return (
     <>
@@ -161,14 +182,20 @@ export default function FAQPage() {
           __html: JSON.stringify(faqStructuredData),
         }}
       />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqPageStructuredData),
+        }}
+      />
+      <div className="min-h-screen bg-gray-50 ">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white  border-b border-gray-200 ">
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center gap-4">
               <Link
                 href="/"
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                className="flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Home
@@ -177,12 +204,12 @@ export default function FAQPage() {
             <div className="mt-4">
               <div className="flex items-center gap-3 mb-2">
                 <HelpCircle className="w-8 h-8 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-bold text-gray-900 ">
                   Frequently Asked Questions
                 </h1>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Find answers to common questions about StyleSage t-shirts,
+              <p className="text-gray-600  text-lg">
+                Find answers to common questions about Yugantar t-shirts,
                 orders, and policies.
               </p>
             </div>
@@ -194,8 +221,8 @@ export default function FAQPage() {
           <div className="max-w-4xl mx-auto space-y-8">
             {faqData.map((category, categoryIndex) => (
               <Card key={categoryIndex} className="overflow-hidden">
-                <CardHeader className="bg-gray-100 dark:bg-gray-700">
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">
+                <CardHeader className="bg-gray-100 ">
+                  <CardTitle className="text-xl text-gray-900 ">
                     {category.category}
                   </CardTitle>
                 </CardHeader>
@@ -205,12 +232,12 @@ export default function FAQPage() {
                       <AccordionItem
                         key={faqIndex}
                         value={`${categoryIndex}-${faqIndex}`}
-                        className="border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                        className="border-b border-gray-200  last:border-b-0"
                       >
-                        <AccordionTrigger className="px-6 py-4 text-left font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <AccordionTrigger className="px-6 py-4 text-left font-medium text-gray-900 transition-colors hover:bg-gray-50">
                           {faq.question}
                         </AccordionTrigger>
-                        <AccordionContent className="px-6 pb-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+                        <AccordionContent className="px-6 pb-4 text-gray-600  leading-relaxed">
                           {faq.answer}
                         </AccordionContent>
                       </AccordionItem>
@@ -224,10 +251,10 @@ export default function FAQPage() {
           {/* Contact Section */}
           <Card className="max-w-4xl mx-auto mt-12">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-bold text-gray-900  mb-4">
                 Still have questions?
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-gray-600  mb-6">
                 Can't find the answer you're looking for? Our customer support
                 team is here to help.
               </p>
@@ -239,8 +266,8 @@ export default function FAQPage() {
                   Contact Support
                 </Link>
                 <Link
-                  href="mailto:support@stylesage.com"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Email Us
                 </Link>

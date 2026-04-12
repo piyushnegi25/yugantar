@@ -2,11 +2,11 @@ import { Metadata } from "next";
 
 // Base SEO configuration
 export const siteConfig = {
-  name: "StyleSage",
+  name: "Yugantar",
   description:
-    "Premium custom t-shirts with anime, meme, and personalized designs. Quality materials, inclusive sizing, and fast shipping across India.",
+    "Buy premium t-shirts online in India with anime, meme, streetwear, and custom designs. Fast shipping, quality fabric, and inclusive sizing.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://www.stylesage.me",
-  siteName: "StyleSage - Premium T-Shirts",
+  siteName: "Yugantar - Premium T-Shirts India",
   creator: "@StyleSageOfficial",
   authors: [
     {
@@ -15,6 +15,11 @@ export const siteConfig = {
     },
   ],
   keywords: [
+    "buy t-shirts online India",
+    "best t-shirt website India",
+    "t-shirt shopping online",
+    "graphic t-shirts India",
+    "oversized t-shirts India",
     "custom t-shirts India",
     "anime t-shirts online",
     "meme t-shirts designs",
@@ -35,6 +40,14 @@ export const siteConfig = {
     "geek culture clothing",
     "pop culture t-shirts",
     "creative t-shirt prints",
+    "streetwear t-shirts India",
+    "myntra alternatives t-shirts",
+    "ajio alternatives t-shirts",
+    "snitch alternatives t-shirts",
+    "bewakoof alternatives",
+    "wrogn alternatives",
+    "bearhouse alternatives",
+    "soulstore alternatives",
   ],
   category: "E-commerce",
   phone: "+91-1234567890",
@@ -64,6 +77,19 @@ export const siteConfig = {
     "Wallets",
   ],
 };
+
+export const domainMigrationConfig = {
+  oldDomain: process.env.NEXT_PUBLIC_APP_URL || "https://www.stylesage.me",
+  newDomain: process.env.NEXT_PUBLIC_FUTURE_DOMAIN || "https://www.yugantar.com",
+};
+
+export function absoluteUrl(path: string = "") {
+  if (!path) {
+    return siteConfig.url;
+  }
+
+  return `${siteConfig.url}${path.startsWith("/") ? path : `/${path}`}`;
+}
 
 // Generate structured data for products
 export function generateProductStructuredData(product: {
@@ -95,7 +121,7 @@ export function generateProductStructuredData(product: {
     },
     offers: {
       "@type": "Offer",
-      url: `${siteConfig.url}/products/${product._id}`,
+      url: absoluteUrl(`/products/${product._id}`),
       priceCurrency: "INR",
       price: product.price,
       priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
@@ -140,14 +166,6 @@ export function generateWebsiteStructuredData() {
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
-    },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${siteConfig.url}/search?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
     },
   };
 }
@@ -269,7 +287,7 @@ export function generateCollectionStructuredData(
     "@type": "CollectionPage",
     name: `${collectionName} T-Shirts Collection`,
     description: `Browse our ${collectionName.toLowerCase()} t-shirt collection featuring unique designs and premium quality materials.`,
-    url: `${siteConfig.url}/${collectionName.toLowerCase()}`,
+    url: absoluteUrl(`/${collectionName.toLowerCase()}`),
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: products.length,
@@ -297,13 +315,12 @@ export function generateBreadcrumbStructuredData(
   breadcrumbs: Array<{ name: string; url: string }>
 ) {
   return {
-    "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: breadcrumbs.map((crumb, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: crumb.name,
-      item: `${siteConfig.url}${crumb.url}`,
+      item: absoluteUrl(crumb.url),
     })),
   };
 }
@@ -409,17 +426,21 @@ export function createMetadata({
 }): Metadata {
   const pageTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.name;
   const pageDescription = description || siteConfig.description;
-  const url = `${siteConfig.url}${path}`;
+  const url = absoluteUrl(path);
 
-  const defaultImages = [`${siteConfig.url}/og-image.png`];
-  const pageImages = images?.length ? images : defaultImages;
+  const defaultImages = [absoluteUrl("/opengraph-image")];
+  const pageImages = (images?.length ? images : defaultImages).map((image) =>
+    image.startsWith("http") ? image : absoluteUrl(image)
+  );
 
   return {
     title: pageTitle,
     description: pageDescription,
+    applicationName: siteConfig.siteName,
     keywords: keywords?.length ? keywords : siteConfig.keywords,
     authors: siteConfig.authors,
     creator: siteConfig.creator,
+    referrer: "origin-when-cross-origin",
     metadataBase: new URL(siteConfig.url),
     alternates: {
       canonical: url,
@@ -441,6 +462,7 @@ export function createMetadata({
         alt: pageTitle,
       })),
       locale: "en_IN",
+      countryName: "India",
       type: "website",
     },
     twitter: {
@@ -519,7 +541,7 @@ export function createCategoryMetadata({
   path: string;
   productCount?: number;
 }) {
-  const title = `${categoryName} T-Shirts Collection`;
+  const title = `${categoryName} T-Shirts Collection Online India`;
   const desc = `${description} ${
     productCount
       ? `Browse ${productCount} unique designs`

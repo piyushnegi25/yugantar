@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
+import { absoluteUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://stylesage.com";
+  const baseUrl = absoluteUrl();
 
   return {
     rules: [
@@ -18,18 +19,14 @@ export default function robots(): MetadataRoute.Robots {
           "/orders",
           "/payment",
           "/success",
-          "/_next/",
           "/debug-navbar",
           "/image-test",
           "/test-db",
-          "/*.json$",
           "/private/*",
           "/tmp/*",
           "/logs/*",
         ],
-        crawlDelay: 1,
       },
-      // Allow specific search engines better access
       {
         userAgent: "Googlebot",
         allow: "/",
@@ -43,12 +40,10 @@ export default function robots(): MetadataRoute.Robots {
           "/orders",
           "/payment",
           "/success",
-          "/_next/",
           "/debug-navbar",
           "/image-test",
           "/test-db",
         ],
-        crawlDelay: 1,
       },
       {
         userAgent: "Bingbot",
@@ -63,50 +58,53 @@ export default function robots(): MetadataRoute.Robots {
           "/orders",
           "/payment",
           "/success",
-          "/_next/",
           "/debug-navbar",
           "/image-test",
           "/test-db",
         ],
-        crawlDelay: 1,
       },
-      // Block AI crawlers
       {
         userAgent: "GPTBot",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "ChatGPT-User",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "CCBot",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "anthropic-ai",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "Claude-Web",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "FacebookBot",
-        disallow: "/",
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         userAgent: "facebookexternalhit",
         allow: "/",
-        disallow: ["/admin", "/api", "/auth/callback"],
+        disallow: ["/admin", "/api", "/auth/callback/*"],
       },
       {
         userAgent: "Twitterbot",
         allow: "/",
-        disallow: ["/admin", "/api", "/auth/callback"],
+        disallow: ["/admin", "/api", "/auth/callback/*"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    host: new URL(baseUrl).host,
   };
 }
