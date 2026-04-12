@@ -77,21 +77,21 @@ export default function CustomPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50  transition-colors">
       {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <header className="border-b border-gray-200  bg-white ">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
+                className="text-2xl font-bold text-gray-900 "
               >
-                StyleSage
+                Yugantar
               </Link>
               <Badge
                 variant="secondary"
-                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                className="bg-blue-100 text-blue-800  "
               >
                 Custom Designer
               </Badge>
@@ -110,10 +110,10 @@ export default function CustomPage() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900  mb-4">
             Design Your Custom T-Shirt
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600  max-w-2xl mx-auto">
             Upload your design and see it come to life on our premium t-shirts.
             Customize colors, size, and position to create your perfect piece.
           </p>
@@ -123,28 +123,28 @@ export default function CustomPage() {
           {/* Design Controls */}
           <div className="space-y-6">
             {/* Upload Section */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="bg-white  border-gray-200 ">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-tight text-foreground text-gray-900  mb-4">
                   Upload Your Design
                 </h3>
 
                 {!uploadedImage ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
                   >
                     <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-300 mb-2">
+                    <p className="text-gray-600  mb-2">
                       Click to upload your design
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500 ">
                       PNG, JPG up to 10MB
                     </p>
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                    <div className="border border-gray-200  rounded-lg p-4 bg-gray-50 ">
                       <Image
                         src={uploadedImage || "/placeholder.svg"}
                         alt="Uploaded design"
@@ -175,9 +175,9 @@ export default function CustomPage() {
             </Card>
 
             {/* T-Shirt Color Selection */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="bg-white  border-gray-200 ">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-tight text-foreground text-gray-900  mb-4">
                   Choose T-Shirt Color
                 </h3>
                 <div className="grid grid-cols-5 gap-3">
@@ -189,14 +189,14 @@ export default function CustomPage() {
                         color.border
                       } ${
                         selectedColor === color.value
-                          ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
+                          ? "ring-2 ring-blue-500 ring-offset-2 "
                           : ""
                       } transition-all`}
                       title={color.name}
                     />
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                <p className="text-sm text-gray-600  mt-2">
                   Selected:{" "}
                   {tshirtColors.find((c) => c.value === selectedColor)?.name}
                 </p>
@@ -205,15 +205,15 @@ export default function CustomPage() {
 
             {/* Design Controls */}
             {uploadedImage && (
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <Card className="bg-white  border-gray-200 ">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-sm font-bold uppercase tracking-tight text-foreground text-gray-900  mb-4">
                     Adjust Design
                   </h3>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700  mb-2">
                         Size: {imageSize}%
                       </label>
                       <input
@@ -222,12 +222,12 @@ export default function CustomPage() {
                         max="60"
                         value={imageSize}
                         onChange={(e) => setImageSize(Number(e.target.value))}
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-2 bg-gray-200  rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700  mb-2">
                         Horizontal Position: {imagePosition.x}%
                       </label>
                       <input
@@ -241,12 +241,12 @@ export default function CustomPage() {
                             x: Number(e.target.value),
                           }))
                         }
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-2 bg-gray-200  rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700  mb-2">
                         Vertical Position: {imagePosition.y}%
                       </label>
                       <input
@@ -260,7 +260,7 @@ export default function CustomPage() {
                             y: Number(e.target.value),
                           }))
                         }
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-2 bg-gray-200  rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
                   </div>
@@ -270,11 +270,11 @@ export default function CustomPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                onClick={resetDesign}
-                variant="outline"
-                className="flex-1 bg-transparent"
-              >
+                <Button
+                  onClick={resetDesign}
+                  variant="outline"
+                  className="flex-1"
+                >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Reset Design
               </Button>
@@ -289,7 +289,7 @@ export default function CustomPage() {
                     category="Custom"
                     defaultColor={selectedColor}
                     colors={tshirtColors.map((c) => c.name)}
-                    className="flex-1 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                    className="flex-1 bg-gray-900 hover:bg-gray-800"
                   />
                 </>
               )}
@@ -298,9 +298,9 @@ export default function CustomPage() {
 
           {/* T-Shirt Preview */}
           <div className="lg:sticky lg:top-8">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="bg-white  border-gray-200 ">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+                <h3 className="text-sm font-bold uppercase tracking-tight text-foreground text-gray-900  mb-4 text-center">
                   Live Preview
                 </h3>
 
@@ -369,8 +369,8 @@ export default function CustomPage() {
                         )}
 
                         {!uploadedImage && (
-                          <div className="absolute inset-0 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-white/20 backdrop-blur-sm">
-                            <div className="text-center text-gray-500 dark:text-gray-400">
+                          <div className="absolute inset-0 flex items-center justify-center border-2 border-dashed border-gray-300  rounded-lg bg-white/20 backdrop-blur-sm">
+                            <div className="text-center text-gray-500 ">
                               <Upload className="w-8 h-8 mx-auto mb-1 opacity-50" />
                               <p className="text-xs">Design Area</p>
                             </div>
@@ -383,14 +383,14 @@ export default function CustomPage() {
 
                 {/* Product Info */}
                 <div className="mt-6 text-center space-y-2">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                  <h4 className="font-semibold text-gray-900 ">
                     Custom Premium T-Shirt
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 ">
                     100% Cotton •{" "}
                     {tshirtColors.find((c) => c.value === selectedColor)?.name}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-gray-900 ">
                     ₹499.00
                   </p>
                 </div>

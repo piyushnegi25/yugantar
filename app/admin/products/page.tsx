@@ -414,10 +414,10 @@ export default function AdminProductsPage() {
 
   if (isAuthLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             Loading products...
           </p>
         </div>
@@ -427,12 +427,12 @@ export default function AdminProductsPage() {
 
   if (!user || user.role !== "admin") {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">
             Access Denied
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             You need admin access to view this page.
           </p>
         </div>
@@ -441,10 +441,10 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen bg-gray-50  p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900 ">
             Product Management
           </h1>
           <div className="flex items-center gap-2">
@@ -519,7 +519,7 @@ export default function AdminProductsPage() {
         {/* Product Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white  rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold">
                   {editingProduct ? "Edit Product" : "Add New Product"}
@@ -744,15 +744,15 @@ export default function AdminProductsPage() {
         )}
 
         {/* Products List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white  rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200 ">
             <h2 className="text-lg font-semibold">All Products</h2>
           </div>
           <div className="p-6">
             {products.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-600 ">
                   No products found
                 </p>
                 <Button onClick={() => setShowForm(true)} className="mt-4">
@@ -787,7 +787,7 @@ export default function AdminProductsPage() {
                         <h3 className="font-semibold text-lg mb-2">
                           {product.name}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">
+                        <p className="text-gray-600  text-sm mb-2 line-clamp-2">
                           {product.description}
                         </p>
                         <div className="flex items-center gap-2 mb-2">

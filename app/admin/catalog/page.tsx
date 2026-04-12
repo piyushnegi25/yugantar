@@ -37,7 +37,6 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/auth/user-menu";
 import {
   getCategories,
@@ -338,7 +337,7 @@ export default function AdminCatalogPage() {
           <h1 className="text-2xl font-bold text-red-600 mb-4">
             Access Denied
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             You need admin access to view this page.
           </p>
         </div>
@@ -347,27 +346,27 @@ export default function AdminCatalogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-white  border-b border-gray-200 ">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
+                className="text-2xl font-bold text-gray-900 "
               >
-                StyleSage
+                Yugantar
               </Link>
               <Badge
                 variant="secondary"
-                className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                className="bg-purple-100 text-purple-800  "
               >
                 Catalog Management
               </Badge>
             </div>
             <div className="flex items-center space-x-4">
-              <ThemeToggle />
+              
               <UserMenu />
             </div>
           </div>
@@ -376,10 +375,10 @@ export default function AdminCatalogPage() {
 
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900  mb-2">
             Catalog Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             Manage categories, products, and navbar configuration
           </p>
         </div>
@@ -934,7 +933,7 @@ export default function AdminCatalogPage() {
                       <Label className="text-base font-semibold">
                         Active Categories
                       </Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <p className="text-sm text-gray-600  mb-4">
                         Select which categories appear in the navbar
                       </p>
                       <div className="space-y-2">
@@ -979,7 +978,7 @@ export default function AdminCatalogPage() {
                       <Label className="text-base font-semibold">
                         Custom Links
                       </Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <p className="text-sm text-gray-600  mb-4">
                         Manage additional navbar links
                       </p>
                       <div className="space-y-2">
