@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Star,
-  Filter,
   Grid,
   List,
   ShoppingCart,
@@ -14,11 +13,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect } from "react";
 import { AddToCart } from "@/components/add-to-cart";
 import { CartBadge } from "@/components/cart-badge";
+import { CategoryFilterChips } from "@/components/category-filter-chips";
 import { normalizeStock, getTotalStock } from "@/lib/stock-normalization";
+import { CategoryHeroBanner } from "@/components/category-hero-banner";
+import { DynamicNavbar } from "@/components/dynamic-navbar";
+import { UserMenu } from "@/components/auth/user-menu";
 
 interface Product {
   _id: string;
@@ -32,7 +34,7 @@ interface Product {
   tags: string[];
   sizes: string[];
   colors: string[];
-  stock: number;
+  stock: number | { [size: string]: number };
   isActive: boolean;
   isFeatured: boolean;
   rating: number;
@@ -40,6 +42,16 @@ interface Product {
   createdAt: string;
   updatedAt: string;
 }
+
+const ANIME_HERO_FALLBACK = {
+  src: "https://images.unsplash.com/photo-1611605698335-8b1569810432?q=80&w=2070&auto=format&fit=crop",
+  alt: "Anime hero banner",
+  title: "Anime Collection",
+  subtitle:
+    "Express your otaku spirit with our premium anime-inspired designs. From classic series to the latest hits!",
+  ctaText: "Explore Anime",
+  linkUrl: "/anime",
+};
 
 export default function AnimePage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -52,6 +64,8 @@ export default function AnimePage() {
   );
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchAnimeProducts = async () => {
       try {
         setLoading(true);
@@ -62,16 +76,21 @@ export default function AnimePage() {
             headers: {
               "Cache-Control": "no-cache",
             },
+            signal: controller.signal,
           }
         );
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
         const data = await response.json();
-        setAnimeProducts(data.products);
+        const products: Product[] = Array.isArray(data.products)
+          ? data.products
+          : [];
+
+        setAnimeProducts(products);
         // Initialize default sizes - select first available size
         const defaultSizes: Record<string, string> = {};
-        data.products.forEach((product: Product) => {
+        products.forEach((product: Product) => {
           const normalizedStock = normalizeStock(product.stock, product.sizes);
           // Find first size that's in stock
           const availableSize = product.sizes.find(
@@ -80,11 +99,18 @@ export default function AnimePage() {
           defaultSizes[product._id] = availableSize || product.sizes[0] || "M";
         });
         setSelectedSizes(defaultSizes);
+        setError(null);
       } catch (err) {
+        if ((err as Error)?.name === "AbortError") {
+          return;
+        }
+
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Error fetching anime products:", err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -101,6 +127,7 @@ export default function AnimePage() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      controller.abort();
     };
   }, []);
 
@@ -168,10 +195,10 @@ export default function AnimePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             Loading anime products...
           </p>
         </div>
@@ -181,7 +208,7 @@ export default function AnimePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Error: {error}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
@@ -191,104 +218,46 @@ export default function AnimePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white  border-b border-gray-200  shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link
               href="/"
-              className="text-2xl font-bold text-gray-900 dark:text-white"
+              className="text-2xl font-bold text-gray-900 "
             >
-              StyleSage
+              Yugantar
             </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link
-                href="/"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Home
-              </Link>
-              <Link
-                href="/collections"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Collections
-              </Link>
-              <Link
-                href="/anime"
-                className="text-blue-600 dark:text-blue-400 font-medium"
-              >
-                Anime
-              </Link>
-              <Link
-                href="/meme"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Memes
-              </Link>
-              <Link
-                href="/custom"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Custom
-              </Link>
-            </nav>
+            <DynamicNavbar currentPath="/anime" />
           </div>
           <div className="flex items-center space-x-4">
+            <UserMenu />
             <CartBadge />
-            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">Anime Collection</h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Express your otaku spirit with our premium anime-inspired designs.
-            From classic series to the latest hits!
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Premium Quality
-            </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Official Designs
-            </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Fast Shipping
-            </Badge>
-          </div>
-        </div>
-      </section>
+      <CategoryHeroBanner fallback={ANIME_HERO_FALLBACK} position="anime_hero" />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white  rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={
-                    selectedCategory === category.id ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className="whitespace-nowrap"
-                >
-                  {category.name} ({category.count})
-                </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <CategoryFilterChips
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                 <Button
                   variant={viewMode === "grid" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("grid")}
+                  className="h-10 w-10 p-0"
+                  aria-label="Grid view"
+                  title="Grid view"
                 >
                   <Grid className="w-4 h-4" />
                 </Button>
@@ -296,22 +265,22 @@ export default function AnimePage() {
                   variant={viewMode === "list" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("list")}
+                  className="h-10 w-10 p-0"
+                  aria-label="List view"
+                  title="List view"
                 >
                   <List className="w-4 h-4" />
                 </Button>
+                </div>
+                <p className="text-sm text-gray-600">{filteredProducts.length} products</p>
               </div>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
             </div>
           </div>
-        </div>
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 ">
               No products found for the selected category.
             </p>
           </div>
@@ -319,8 +288,8 @@ export default function AnimePage() {
           <div
             className={
               viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "flex flex-col gap-4"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+                : "flex flex-col gap-3 sm:gap-4"
             }
           >
             {filteredProducts.map((product) => {
@@ -375,7 +344,7 @@ export default function AnimePage() {
                       <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2 flex-grow">
+                      <p className="text-gray-600  text-sm mb-3 line-clamp-2 flex-grow">
                         {product.description}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
@@ -386,7 +355,7 @@ export default function AnimePage() {
                           </span>
                         </div>
                         <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-gray-600 ">
                           {product.reviews} reviews
                         </span>
                       </div>
@@ -394,7 +363,7 @@ export default function AnimePage() {
                       {/* Price Section */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900 dark:text-white">
+                          <span className="text-xl font-bold text-gray-900 ">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
@@ -408,7 +377,7 @@ export default function AnimePage() {
                       {/* Size Options */}
                       <div className="mb-3">
                         <div className="flex items-start gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">
+                          <span className="text-sm font-medium text-gray-700  flex-shrink-0">
                             Size:
                           </span>
                           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
@@ -433,10 +402,10 @@ export default function AnimePage() {
                                   disabled={isOutOfStock}
                                   className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
                                     isOutOfStock
-                                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                                      ? "bg-gray-300  text-gray-500  border-gray-300  cursor-not-allowed opacity-60"
                                       : selectedSizes[product._id] === size
-                                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                      ? "bg-gray-900 text-white border-transparent"
+                                      : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
                                   }`}
                                 >
                                   {size}

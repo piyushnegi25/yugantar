@@ -41,6 +41,21 @@ export interface NavbarConfig {
   updatedAt: Date;
 }
 
+function dispatchStorageUpdate(key: string, value: unknown): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key,
+        newValue: JSON.stringify(value),
+      })
+    );
+  } catch {
+    // Ignore environments where StorageEvent construction is restricted.
+  }
+}
+
 // Default categories
 const DEFAULT_CATEGORIES: Category[] = [
   {
@@ -88,13 +103,22 @@ const DEFAULT_CATEGORIES: Category[] = [
 // Storage functions (replace with real database in production)
 export function getCategories(): Category[] {
   if (typeof window === "undefined") return DEFAULT_CATEGORIES;
-  const stored = localStorage.getItem("stylesage_categories");
+
+  const stored =
+    localStorage.getItem("stylesage_categories") ||
+    localStorage.getItem("yugantar_categories");
+
+  if (stored && !localStorage.getItem("stylesage_categories")) {
+    localStorage.setItem("stylesage_categories", stored);
+  }
+
   return stored ? JSON.parse(stored) : DEFAULT_CATEGORIES;
 }
 
 export function saveCategories(categories: Category[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem("stylesage_categories", JSON.stringify(categories));
+  dispatchStorageUpdate("stylesage_categories", categories);
 }
 
 export function getProducts(): Product[] {
@@ -106,6 +130,7 @@ export function getProducts(): Product[] {
 export function saveProducts(products: Product[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem("stylesage_products", JSON.stringify(products));
+  dispatchStorageUpdate("stylesage_products", products);
 }
 
 export function getNavbarConfig(): NavbarConfig {
@@ -118,7 +143,14 @@ export function getNavbarConfig(): NavbarConfig {
     };
   }
 
-  const stored = localStorage.getItem("stylesage_navbar");
+  const stored =
+    localStorage.getItem("stylesage_navbar") ||
+    localStorage.getItem("yugantar_navbar");
+
+  if (stored && !localStorage.getItem("stylesage_navbar")) {
+    localStorage.setItem("stylesage_navbar", stored);
+  }
+
   return stored
     ? JSON.parse(stored)
     : {
@@ -132,6 +164,7 @@ export function getNavbarConfig(): NavbarConfig {
 export function saveNavbarConfig(config: NavbarConfig): void {
   if (typeof window === "undefined") return;
   localStorage.setItem("stylesage_navbar", JSON.stringify(config));
+  dispatchStorageUpdate("stylesage_navbar", config);
 }
 
 // CRUD operations
@@ -226,4 +259,38 @@ export function updateStock(
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+export interface Banner {
+  id: string;
+  imageDesk: string;
+  imageMob: string;
+  linkUrl: string;
+  position: "hero" | "category" | "footer";
+  isActive: boolean;
+  order: number;
+}
+
+export function getBanners(): Banner[] {
+  if (typeof window === "undefined") return [];
+  const stored = localStorage.getItem("yugantar_banners");
+  if (stored) return JSON.parse(stored);
+  return [
+    {
+      id: "hero-1",
+      imageDesk: "/assets/hero-desk.png",
+      imageMob: "/assets/hero-mob.png",
+      linkUrl: "/collections",
+      position: "hero",
+      isActive: true,
+      order: 1
+    }
+  ];
+}
+
+export function saveBanners(banners: Banner[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("yugantar_banners", JSON.stringify(banners));
+    window.dispatchEvent(new StorageEvent("storage", { key: "yugantar_banners" }));
+  }
 }
