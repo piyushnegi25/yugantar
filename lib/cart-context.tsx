@@ -184,6 +184,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const sessionId = getSessionId();
+
+      if (items.length === 0) {
+        const clearResponse = await fetch(
+          `/api/cart?sessionId=${encodeURIComponent(sessionId)}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+
+        if (!clearResponse.ok) {
+          console.error("Failed to clear cart on server");
+        }
+
+        return;
+      }
+
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: {
@@ -281,7 +298,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Sync cart with server whenever items change
   useEffect(() => {
-    if (mounted && state.items.length > 0) {
+    if (mounted) {
       const timeoutId = setTimeout(() => {
         syncCart(state.items);
       }, 500); // Debounce sync operations

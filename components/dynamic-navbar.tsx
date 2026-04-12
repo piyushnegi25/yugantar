@@ -15,7 +15,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Package } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface DynamicNavbarProps {
   currentPath?: string;
@@ -47,7 +47,12 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
 
     // Listen for storage changes to update navbar in real-time
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "stylesage_categories" || e.key === "stylesage_navbar") {
+      if (
+        e.key === "stylesage_categories" ||
+        e.key === "stylesage_navbar" ||
+        e.key === "yugantar_categories" ||
+        e.key === "yugantar_navbar"
+      ) {
         loadNavbarData();
       }
     };
@@ -65,12 +70,12 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+              className="h-4 w-16 bg-gray-200  rounded animate-pulse"
             />
           ))}
         </nav>
         <div className="md:hidden">
-          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-gray-200  rounded animate-pulse" />
         </div>
       </>
     );
@@ -123,8 +128,8 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
             href={`/${category.slug}`}
             className={`transition-colors ${
               currentPath === `/${category.slug}`
-                ? "text-gray-900 dark:text-white font-medium border-b-2 border-blue-500"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                ? "text-gray-900  font-medium border-b-2 border-blue-500"
+                : "text-gray-600 hover:text-gray-900"
             }`}
           >
             {category.name}
@@ -137,8 +142,8 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
             href={link.href}
             className={`transition-colors ${
               currentPath === link.href
-                ? "text-gray-900 dark:text-white font-medium border-b-2 border-purple-500"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                ? "text-gray-900  font-medium border-b-2 border-purple-500"
+                : "text-gray-600 hover:text-gray-900"
             }`}
           >
             {link.name}
@@ -150,7 +155,7 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="h-10 w-10">
               <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
@@ -158,8 +163,8 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
           <SheetContent side="left">
             <div className="flex flex-col gap-y-6 pt-6">
               <Link href="/" className="flex items-center space-x-2 mb-4">
-                <Package className="h-8 w-8" />
-                <span className="text-xl font-bold">StyleSage</span>
+                
+                <span className="text-xl font-bold">Yugantar</span>
               </Link>
               <nav className="flex flex-col gap-y-4">
                 {navLinks.map((link) => (
@@ -168,8 +173,8 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
                       href={link.href}
                       className={`text-lg ${
                         currentPath === link.href
-                          ? "text-blue-600 dark:text-blue-400 font-medium"
-                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                          ? "text-blue-600  font-medium"
+                          : "text-gray-600 hover:text-gray-900"
                       }`}
                     >
                       {link.label}

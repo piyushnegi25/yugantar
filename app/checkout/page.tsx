@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 declare global {
   interface Window {
@@ -28,11 +27,18 @@ interface AddressForm {
   phone: string;
 }
 
+interface AuthUser {
+  id: string;
+  email?: string;
+  name?: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: "",
@@ -48,35 +54,65 @@ export default function CheckoutPage() {
   const total = subtotal + shipping;
 
   useEffect(() => {
-    // Check if user is authenticated
-    const userData = localStorage.getItem("user");
-    if (!userData) {
-      router.push("/auth");
-      return;
-    }
+    let isMounted = true;
+    let script: HTMLScriptElement | null = null;
 
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
+    const initializeCheckout = async () => {
+      try {
+        const authResponse = await fetch("/api/auth/me", {
+          cache: "no-store",
+          credentials: "include",
+        });
 
-    // Pre-fill name if available
-    if (parsedUser.name) {
-      setAddress((prev) => ({ ...prev, fullName: parsedUser.name }));
-    }
+        if (!authResponse.ok) {
+          router.push("/auth?callbackUrl=/checkout");
+          return;
+        }
 
-    // Check if cart is empty
+        const authData = await authResponse.json();
+        if (!isMounted || !authData?.user) {
+          return;
+        }
+
+        setUser(authData.user);
+
+        if (authData.user.name) {
+          setAddress((prev) => ({ ...prev, fullName: authData.user.name }));
+        }
+      } catch (error) {
+        router.push("/auth?callbackUrl=/checkout");
+      } finally {
+        if (isMounted) {
+          setAuthChecked(true);
+        }
+      }
+    };
+
     if (items.length === 0) {
       router.push("/cart");
       return;
     }
 
+    initializeCheckout();
+
     // Load Razorpay script
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
+    const existingScript = document.querySelector(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+    );
+
+    if (!existingScript) {
+      script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
 
     return () => {
-      document.body.removeChild(script);
+      isMounted = false;
+
+      if (script && script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
     };
   }, [items, router]);
 
@@ -117,7 +153,6 @@ export default function CheckoutPage() {
 
     try {
       const orderData = {
-        userId: user.id,
         items: items.map((item) => ({
           productId: item.productId, // Use productId instead of id
           title: item.name,
@@ -135,12 +170,13 @@ export default function CheckoutPage() {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(orderData),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (!data.success) {
+      if (!response.ok || !data.success) {
         // Handle stock validation errors
         if (data.error === "Insufficient stock") {
           alert(
@@ -155,12 +191,17 @@ export default function CheckoutPage() {
         return;
       }
 
+      if (typeof window === "undefined" || !window.Razorpay) {
+        alert("Payment system is still loading. Please try again in a moment.");
+        return;
+      }
+
       // If successful, proceed with payment
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
         amount: data.order.amount,
         currency: data.order.currency,
-        name: "StyleSage",
+        name: "Yugantar",
         description: "T-Shirt Order Payment",
         order_id: data.order.id,
         handler: function (response: any) {
@@ -202,6 +243,7 @@ export default function CheckoutPage() {
       const verifyResponse = await fetch("/api/checkout/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           razorpay_order_id: paymentResponse.razorpay_order_id,
           razorpay_payment_id: paymentResponse.razorpay_payment_id,
@@ -210,9 +252,9 @@ export default function CheckoutPage() {
         }),
       });
 
-      const verifyData = await verifyResponse.json();
+      const verifyData = await verifyResponse.json().catch(() => ({}));
 
-      if (verifyData.success) {
+      if (verifyResponse.ok && verifyData.success) {
         // Clear cart and redirect to orders page
         clearCart();
         window.location.href = "/orders";
@@ -230,28 +272,39 @@ export default function CheckoutPage() {
   };
 
   if (!user || items.length === 0) {
+    if (!authChecked || items.length === 0) {
+      return (
+        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 ">Preparing checkout...</p>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50  transition-colors">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      <header className="bg-white  border-b border-gray-200  sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link
                 href="/cart"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                className="flex items-center space-x-2 text-gray-600 transition-colors hover:text-gray-900"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Back to Cart</span>
               </Link>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-semibold text-gray-900 ">
               Checkout
             </h1>
-            <ThemeToggle />
+            
           </div>
         </div>
       </header>
@@ -259,7 +312,7 @@ export default function CheckoutPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Address Form */}
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Card className="bg-white  border-gray-200 ">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5" />
@@ -355,7 +408,7 @@ export default function CheckoutPage() {
           </Card>
 
           {/* Order Summary */}
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Card className="bg-white  border-gray-200 ">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -367,7 +420,7 @@ export default function CheckoutPage() {
                     key={`${item.id}-${item.size}`}
                     className="flex items-center space-x-3"
                   >
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-md"></div>
+                    <div className="w-12 h-12 bg-gray-100  rounded-md"></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{item.name}</p>
                       <p className="text-xs text-gray-500">
@@ -381,7 +434,7 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <hr className="border-gray-200 dark:border-gray-700" />
+              <hr className="border-gray-200 " />
 
               {/* Pricing */}
               <div className="space-y-2">
@@ -395,7 +448,7 @@ export default function CheckoutPage() {
                     {shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}
                   </span>
                 </div>
-                <hr className="border-gray-200 dark:border-gray-700" />
+                <hr className="border-gray-200 " />
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
                   <span>₹{total.toFixed(2)}</span>
@@ -405,7 +458,7 @@ export default function CheckoutPage() {
               <Button
                 onClick={handlePayment}
                 disabled={isLoading || !validateAddress()}
-                className="w-full bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                className="w-full bg-gray-900 hover:bg-gray-800"
                 size="lg"
               >
                 {isLoading ? (

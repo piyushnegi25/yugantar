@@ -167,5 +167,6 @@ export async function initializeDefaultAdmin(): Promise<void> {
     }
   } catch (error) {
     console.error("Error initializing admin:", error)
+    throw error
   }
 }

@@ -1,19 +1,129 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { validateStock } from "@/lib/stock-utils";
 import { v4 as uuidv4 } from "uuid";
+import { getUserFromToken } from "@/lib/auth";
 
-export async function POST(request: Request) {
+interface CheckoutItem {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  size: string;
+  image: string;
+}
+
+function normalizeItems(items: unknown): CheckoutItem[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item) => ({
+    productId: String(item?.productId || "").trim(),
+    title: String(item?.title || "").trim(),
+    price: Number(item?.price),
+    quantity: Number(item?.quantity),
+    size: String(item?.size || "").trim(),
+    image: String(item?.image || "").trim(),
+  }));
+}
+
+function hasValidItems(items: CheckoutItem[]) {
+  if (!items.length) {
+    return false;
+  }
+
+  return items.every(
+    (item) =>
+      !!item.productId &&
+      !!item.title &&
+      !!item.size &&
+      !!item.image &&
+      Number.isFinite(item.price) &&
+      item.price >= 0 &&
+      Number.isInteger(item.quantity) &&
+      item.quantity > 0
+  );
+}
+
+function hasValidAddress(address: unknown) {
+  if (!address || typeof address !== "object") {
+    return false;
+  }
+
+  const addressRecord = address as Record<string, unknown>;
+
+  const requiredFields = [
+    "fullName",
+    "addressLine1",
+    "city",
+    "state",
+    "pinCode",
+    "phone",
+  ];
+
+  return requiredFields.every((field) => {
+    const value = addressRecord[field];
+    return typeof value === "string" && value.trim().length > 0;
+  });
+}
+
+export async function POST(request: NextRequest) {
   try {
-    const { userId, items, address, subtotal, shipping, total } =
-      await request.json();
+    const token = request.cookies.get("auth_token")?.value;
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const user = await getUserFromToken(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Invalid authentication" },
+        { status: 401 }
+      );
+    }
+
+    const { items, address } = await request.json();
+    const normalizedItems = normalizeItems(items);
+
+    if (!hasValidItems(normalizedItems)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order items" },
+        { status: 400 }
+      );
+    }
+
+    if (!hasValidAddress(address)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid delivery address" },
+        { status: 400 }
+      );
+    }
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return NextResponse.json(
+        { success: false, error: "Payment gateway configuration missing" },
+        { status: 500 }
+      );
+    }
 
     await connectDB();
 
+    const subtotal = Number(
+      normalizedItems
+        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+        .toFixed(2)
+    );
+    const shipping = subtotal > 1199 ? 0 : 99;
+    const total = Number((subtotal + shipping).toFixed(2));
+
     // Validate stock availability before creating order
-    const stockValidation = await validateStock(items);
+    const stockValidation = await validateStock(normalizedItems);
     if (!stockValidation.valid) {
       const outOfStockDetails = stockValidation.outOfStockItems
         .map(
@@ -53,9 +163,9 @@ export async function POST(request: Request) {
 
     // Create order in database
     const order = new Order({
-      userId,
+      userId: user._id.toString(),
       orderId,
-      items,
+      items: normalizedItems,
       address,
       payment: {
         razorpayOrderId: razorpayOrder.id,

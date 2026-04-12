@@ -22,18 +22,18 @@ function SuccessContent() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50  flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="mx-auto w-16 h-16 bg-green-100  rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600 " />
           </div>
-          <CardTitle className="text-2xl text-gray-900 dark:text-white">
+          <CardTitle className="text-2xl text-gray-900 ">
             Payment Successful!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 ">
             Your order has been placed successfully.
             {orderId && (
               <>
@@ -42,7 +42,7 @@ function SuccessContent() {
               </>
             )}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 ">
             Redirecting to your orders page in 3 seconds...
           </p>
           <div className="flex flex-col space-y-2">
@@ -69,7 +69,7 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
         </div>
       }

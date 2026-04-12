@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
+import { getUserFromToken } from "@/lib/auth";
+
+async function checkAdminAuth(request: NextRequest) {
+  const token = request.cookies.get("auth_token")?.value;
+  if (!token) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
+
+  const user = await getUserFromToken(token);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  return user;
+}
 
 // Updated sample product data with proper Cloudinary URLs for demonstration
 const sampleProductsUpdated = [
@@ -545,6 +563,11 @@ const sampleProducts = [
 // POST /api/products/seed - Seed sample data (Admin only for safety)
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     await connectDB();
 
     // For safety, let's add a simple check
@@ -590,6 +613,11 @@ export async function POST(request: NextRequest) {
 // DELETE /api/products/seed - Clear all products (for testing)
 export async function DELETE(request: NextRequest) {
   try {
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     await connectDB();
 
     const body = await request.json();
@@ -621,6 +649,11 @@ export async function DELETE(request: NextRequest) {
 // PUT /api/products/seed - Update existing products with better images
 export async function PUT(request: NextRequest) {
   try {
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     await connectDB();
 
     const body = await request.json();

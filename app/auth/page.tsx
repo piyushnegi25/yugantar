@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { SignupForm } from "@/components/auth/signup-form";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -13,8 +12,6 @@ function AuthContent() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -33,17 +30,17 @@ function AuthContent() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50   flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Link
           href="/"
-          className="text-2xl font-bold text-gray-900 dark:text-white"
+          className="text-2xl font-bold text-gray-900 "
         >
-          StyleSage
+          Yugantar
         </Link>
       </div>
       <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        
       </div>
 
       <div className="w-full max-w-md space-y-4">
@@ -66,7 +63,16 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 ">Loading auth...</p>
+          </div>
+        </div>
+      }
+    >
       <AuthContent />
     </Suspense>
   );

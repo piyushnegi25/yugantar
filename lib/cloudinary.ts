@@ -4,11 +4,9 @@ import { v2 as cloudinary } from "cloudinary";
 // or use individual components
 cloudinary.config({
   cloudinary_url: process.env.CLOUDINARY_URL,
-  // Fallback to individual components if needed
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dwbhyqykj",
-  api_key: process.env.CLOUDINARY_API_KEY || "326174176873516",
-  api_secret:
-    process.env.CLOUDINARY_API_SECRET || "YoxP9RoRWZXR05_uFNSCdddJn18",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export default cloudinary;

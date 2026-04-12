@@ -17,10 +17,13 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/auth/user-menu";
+import { BannerManagement } from "@/components/admin/banner-management";
 
 interface User {
+  id: string;
+  email: string;
+  name: string;
   role: string;
 }
 
@@ -51,38 +54,90 @@ interface Order {
   createdAt: string;
 }
 
+interface Banner {
+  _id: string;
+  name: string;
+  position:
+    | "home_hero"
+    | "home_feature"
+    | "collections_hero"
+    | "anime_hero"
+    | "meme_hero";
+  image: string;
+  alt: string;
+  title?: string;
+  subtitle?: string;
+  ctaText?: string;
+  linkUrl: string;
+  order: number;
+  isActive: boolean;
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [bannersLoading, setBannersLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
+    let isMounted = true;
+
+    const checkAuth = async () => {
       try {
-        const userData = localStorage.getItem("user");
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          if (parsedUser.role === "admin") {
-            fetchOrders();
-          }
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          window.location.href =
+            "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
+        const data = await response.json();
+        const authUser = data?.user;
+
+        if (!isMounted || !authUser) {
+          return;
+        }
+
+        setUser(authUser);
+
+        if (authUser.role === "admin") {
+          await Promise.all([fetchOrders(), fetchBanners()]);
+        } else {
+          window.location.href =
+            "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
+        window.location.href =
+          "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch("/api/orders?admin=true");
+      const response = await fetch("/api/orders?admin=true", {
+        cache: "no-store",
+        credentials: "include",
+      });
       const data = await response.json();
-      if (data.success) {
+      if (response.ok && data.success) {
         setOrders(data.orders);
       } else {
         console.error("Failed to fetch orders:", data.error);
@@ -99,27 +154,60 @@ export default function AdminPage() {
       const response = await fetch("/api/orders", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ orderId, orderStatus: newStatus }),
       });
 
       const data = await response.json();
       if (data.success) {
+        if (
+          newStatus === "cancelled" &&
+          data.stockRestored === false &&
+          Array.isArray(data.stockErrors) &&
+          data.stockErrors.length > 0
+        ) {
+          console.warn("Order cancelled but stock restoration had issues:", data.stockErrors);
+        }
+
         // Refresh orders
         fetchOrders();
       } else {
+        alert(data.error || "Failed to update order status");
         console.error("Failed to update order:", data.error);
       }
     } catch (error) {
+      alert("Failed to update order status. Please try again.");
       console.error("Error updating order:", error);
+    }
+  };
+
+  const fetchBanners = async () => {
+    try {
+      setBannersLoading(true);
+      const response = await fetch("/api/banners?admin=true", {
+        cache: "no-store",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setBanners(Array.isArray(data.banners) ? data.banners : []);
+      } else {
+        console.error("Failed to fetch banners:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching banners:", error);
+    } finally {
+      setBannersLoading(false);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 ">Loading...</p>
         </div>
       </div>
     );
@@ -127,13 +215,13 @@ export default function AdminPage() {
 
   if (!user || user.role !== "admin") {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-2xl font-bold text-gray-900  mb-4">
               Access Denied
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600  mb-6">
               You need admin privileges to access this page.
             </p>
             <div className="space-y-3">
@@ -213,27 +301,27 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-white  border-b border-gray-200 ">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
+                className="text-2xl font-bold text-gray-900 "
               >
-                StyleSage
+                Yugantar
               </Link>
               <Badge
                 variant="secondary"
-                className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                className="bg-red-100 text-red-800  "
               >
                 Admin Panel
               </Badge>
             </div>
             <div className="flex items-center space-x-4">
-              <ThemeToggle />
+              
               <UserMenu />
             </div>
           </div>
@@ -243,11 +331,11 @@ export default function AdminPage() {
       <div className="p-6">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900  mb-2">
             Welcome back, Admin! 👋
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Here's what's happening with StyleSage today.
+          <p className="text-gray-600 ">
+            Here's what's happening with Yugantar today.
           </p>
         </div>
 
@@ -258,15 +346,15 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    <p className="text-sm font-medium text-gray-600 ">
                       {stat.title}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-2xl font-bold text-gray-900 ">
                       {stat.value}
                     </p>
                   </div>
                   <div
-                    className={`p-2 rounded-full bg-gray-100 dark:bg-gray-700 ${stat.color}`}
+                    className={`p-2 rounded-full bg-gray-100  ${stat.color}`}
                   >
                     {stat.icon}
                   </div>
@@ -298,13 +386,13 @@ export default function AdminPage() {
               {ordersLoading ? (
                 <div className="text-center py-8">
                   <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 ">
                     Loading orders...
                   </p>
                 </div>
               ) : recentOrders.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 ">
                     No orders found
                   </p>
                 </div>
@@ -329,11 +417,11 @@ export default function AdminPage() {
                     return (
                       <div
                         key={order._id}
-                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                        className="flex items-center justify-between p-4 border border-gray-200  rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white">
+                            <span className="font-medium text-gray-900 ">
                               {order.orderId}
                             </span>
                             <div className="flex items-center space-x-2">
@@ -363,18 +451,18 @@ export default function AdminPage() {
                               </select>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-gray-600 ">
                             {order.address.fullName} - {order.address.city},{" "}
                             {order.address.state}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-500">
+                          <p className="text-sm text-gray-500 ">
                             {order.items.length} item
                             {order.items.length > 1 ? "s" : ""} •{" "}
                             {new Date(order.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-gray-900 dark:text-white">
+                          <p className="font-semibold text-gray-900 ">
                             ₹{order.total.toFixed(2)}
                           </p>
                           <div className="flex space-x-1 mt-1">
@@ -418,26 +506,26 @@ export default function AdminPage() {
                 {topProducts.map((product, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    className="flex items-center justify-between p-4 border border-gray-200  rounded-lg"
                   >
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white">
+                      <h4 className="font-medium text-gray-900 ">
                         {product.name}
                       </h4>
                       <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-gray-600 ">
                           {product.sales} sales
                         </span>
                         <div className="flex items-center">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-sm text-gray-600 ">
                             {product.rating}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold text-gray-900 ">
                         {product.revenue}
                       </p>
                       <div className="flex space-x-1 mt-1">
@@ -498,6 +586,24 @@ export default function AdminPage() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-6">
+          {bannersLoading ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Homepage Banners</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  Loading banners...
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <BannerManagement banners={banners} onRefresh={fetchBanners} />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,8 +9,12 @@ import {
 export async function POST(request: NextRequest) {
   try {
     const { email, password, name } = await request.json();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const normalizedName = String(name || "").trim();
 
-    if (!email || !password || !name) {
+    if (!normalizedEmail || !password || !normalizedName) {
       return NextResponse.json(
         { error: "Email, password, and name are required" },
         { status: 400 }
@@ -25,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await getUserByEmail(email);
+    const existingUser = await getUserByEmail(normalizedEmail);
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
@@ -38,11 +42,11 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const user = await createUser({
-      email,
-      name,
+      email: normalizedEmail,
+      name: normalizedName,
       password: hashedPassword,
       provider: "email",
-      role: email.toLowerCase() === "admin@test.com" ? "admin" : "user", // Allow admin creation for testing
+      role: "user",
     });
 
     const token = await createJWT(user);

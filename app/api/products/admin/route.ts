@@ -99,15 +99,37 @@ export async function POST(request: NextRequest) {
 
     // Parse sizeStock from JSON string
     const sizeStockString = formData.get("sizeStock") as string;
-    const sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    let sizeStockData: Record<string, unknown> = {};
+
+    try {
+      sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid stock data format" },
+        { status: 400 }
+      );
+    }
+
     const stock: { [size: string]: number } = {};
 
     // Convert string values to numbers and ensure all sizes have stock
     sizes.forEach((size) => {
-      stock[size] = parseInt(sizeStockData[size] || "0");
+      const rawValue = sizeStockData[size];
+      const parsedValue = Number.parseInt(String(rawValue ?? "0"), 10);
+      stock[size] = Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : 0;
     });
 
     const isFeatured = formData.get("isFeatured") === "true";
+
+    if (
+      originalPrice !== undefined &&
+      (Number.isNaN(originalPrice) || originalPrice < 0)
+    ) {
+      return NextResponse.json(
+        { error: "Original price must be a valid non-negative number" },
+        { status: 400 }
+      );
+    }
 
     console.log("POST request data:", {
       name,
@@ -125,7 +147,14 @@ export async function POST(request: NextRequest) {
     console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
 
     // Validate required fields
-    if (!name || !description || !price || !category.length || !sizes.length) {
+    if (
+      !name ||
+      !description ||
+      Number.isNaN(price) ||
+      price <= 0 ||
+      !category.length ||
+      !sizes.length
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -146,7 +175,11 @@ export async function POST(request: NextRequest) {
 
     // Handle image uploads
     const imageFiles = formData.getAll("images") as File[];
-    if (!imageFiles || imageFiles.length === 0) {
+    const validImageFiles = (imageFiles || []).filter(
+      (file) => file && file.size > 0
+    );
+
+    if (validImageFiles.length === 0) {
       return NextResponse.json(
         { error: "At least one image is required" },
         { status: 400 }
@@ -155,12 +188,10 @@ export async function POST(request: NextRequest) {
 
     const imageUrls: string[] = [];
 
-    for (const file of imageFiles) {
-      if (file && file.size > 0) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const result = (await uploadImage(buffer, "tshirt-products")) as any;
-        imageUrls.push(result.secure_url);
-      }
+    for (const file of validImageFiles) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const result = (await uploadImage(buffer, "tshirt-products")) as any;
+      imageUrls.push(result.secure_url);
     }
 
     // Create product
@@ -238,17 +269,39 @@ export async function PUT(request: NextRequest) {
 
     // Parse sizeStock from JSON string for PUT request
     const sizeStockString = formData.get("sizeStock") as string;
-    const sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    let sizeStockData: Record<string, unknown> = {};
+
+    try {
+      sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid stock data format" },
+        { status: 400 }
+      );
+    }
+
     const stock: { [size: string]: number } = {};
 
     // Convert string values to numbers and ensure all sizes have stock
     sizes.forEach((size) => {
-      stock[size] = parseInt(sizeStockData[size] || "0");
+      const rawValue = sizeStockData[size];
+      const parsedValue = Number.parseInt(String(rawValue ?? "0"), 10);
+      stock[size] = Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : 0;
     });
 
     const isFeatured = formData.get("isFeatured") === "true";
     const isActive = formData.get("isActive") === "true";
     const keepExistingImages = formData.get("keepExistingImages") === "true";
+
+    if (
+      originalPrice !== undefined &&
+      (Number.isNaN(originalPrice) || originalPrice < 0)
+    ) {
+      return NextResponse.json(
+        { error: "Original price must be a valid non-negative number" },
+        { status: 400 }
+      );
+    }
 
     console.log("PUT request data:", {
       productId,
@@ -274,7 +327,8 @@ export async function PUT(request: NextRequest) {
       !productId ||
       !name ||
       !description ||
-      isNaN(price) ||
+      Number.isNaN(price) ||
+      price <= 0 ||
       !category.length ||
       !sizes.length
     ) {
@@ -282,7 +336,7 @@ export async function PUT(request: NextRequest) {
         productId: !!productId,
         name: !!name,
         description: !!description,
-        price: !isNaN(price),
+        price: !Number.isNaN(price) && price > 0,
         category: !!category.length,
         sizesLength: sizes.length,
       });
@@ -321,7 +375,11 @@ export async function PUT(request: NextRequest) {
     if (!keepExistingImages) {
       const newImageFiles = formData.getAll("newImages") as File[];
 
-      if (newImageFiles && newImageFiles.length > 0) {
+      const validNewImageFiles = (newImageFiles || []).filter(
+        (file) => file && file.size > 0
+      );
+
+      if (validNewImageFiles.length > 0) {
         console.log(
           "Updating images, deleting old ones and uploading new ones"
         );
@@ -339,15 +397,10 @@ export async function PUT(request: NextRequest) {
 
         // Upload new images
         imageUrls = [];
-        for (const file of newImageFiles) {
-          if (file && file.size > 0) {
-            const buffer = Buffer.from(await file.arrayBuffer());
-            const result = (await uploadImage(
-              buffer,
-              "tshirt-products"
-            )) as any;
-            imageUrls.push(result.secure_url);
-          }
+        for (const file of validNewImageFiles) {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const result = (await uploadImage(buffer, "tshirt-products")) as any;
+          imageUrls.push(result.secure_url);
         }
       }
     }
@@ -427,7 +480,7 @@ export async function DELETE(request: NextRequest) {
     for (const imageUrl of product.images) {
       try {
         const publicId = getPublicIdFromUrl(imageUrl);
-        await deleteImage(`tshirt-products/${publicId}`);
+        await deleteImage(publicId);
       } catch (error) {
         console.warn("Failed to delete image:", error);
       }

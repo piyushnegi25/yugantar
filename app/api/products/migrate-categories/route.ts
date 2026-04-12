@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find all products where category is a string (not an array)
+    // Find all products where category is a string (legacy shape)
     const products = await Product.find({
-      $where: "typeof this.category === 'string'",
+      $expr: { $eq: [{ $type: "$category" }, "string"] },
     });
 
     console.log(

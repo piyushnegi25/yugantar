@@ -126,6 +126,18 @@ export function UserMenu() {
       localStorage.removeItem("user");
       localStorage.removeItem("auth_token");
       setUser(null);
+
+      try {
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "user",
+            newValue: null,
+          })
+        );
+      } catch {
+        // Ignore cross-browser StorageEvent constructor issues.
+      }
+
       // Force reload to clear any cached data
       window.location.href = "/";
     }
@@ -133,7 +145,7 @@ export function UserMenu() {
 
   if (isLoading) {
     return (
-      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+      <div className="w-8 h-8 bg-gray-200  rounded-full animate-pulse" />
     );
   }
 
@@ -143,7 +155,7 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+          className="text-gray-600 hover:text-gray-900"
         >
           Sign In
         </Button>
@@ -179,7 +191,7 @@ export function UserMenu() {
               {user.email}
             </p>
             {user.role === "admin" && (
-              <span className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-1 rounded-full w-fit">
+              <span className="text-xs bg-red-100 text-red-800   px-2 py-1 rounded-full w-fit">
                 Admin
               </span>
             )}

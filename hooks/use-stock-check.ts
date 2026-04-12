@@ -20,6 +20,9 @@ export function useStockCheck(
       return;
     }
 
+    let isMounted = true;
+    const controller = new AbortController();
+
     const checkStock = async () => {
       setIsLoading(true);
       setError(null);
@@ -28,7 +31,10 @@ export function useStockCheck(
         const response = await fetch(
           `/api/products/stock?productId=${encodeURIComponent(
             productId
-          )}&size=${encodeURIComponent(size)}`
+          )}&size=${encodeURIComponent(size)}`,
+          {
+            signal: controller.signal,
+          }
         );
 
         if (!response.ok) {
@@ -37,6 +43,10 @@ export function useStockCheck(
 
         const data = await response.json();
 
+        if (!isMounted) {
+          return;
+        }
+
         if (data.success) {
           setStock(data.stock);
         } else {
@@ -44,14 +54,29 @@ export function useStockCheck(
           setStock(0);
         }
       } catch (err) {
+        if ((err as Error)?.name === "AbortError") {
+          return;
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
         setError(err instanceof Error ? err.message : "Failed to check stock");
         setStock(0);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkStock();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [productId, size, enabled]);
 
   return { stock, isLoading, error };

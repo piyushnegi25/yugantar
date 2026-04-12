@@ -74,8 +74,20 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
       // Store user data in localStorage for client-side access
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      try {
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "user",
+            newValue: JSON.stringify(data.user),
+          })
+        );
+      } catch {
+        // Ignore cross-browser StorageEvent constructor issues.
+      }
+
       // Redirect to home page
       router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Registration error:", error);
       setError(error instanceof Error ? error.message : "Registration failed");
@@ -96,11 +108,11 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardTitle className="text-2xl font-bold text-gray-900 ">
           Create Account
         </CardTitle>
-        <p className="text-gray-600 dark:text-gray-400">
-          Join StyleSage and express your creativity
+        <p className="text-gray-600 ">
+          Join Yugantar and express your creativity
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -223,7 +235,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             />
             <label
               htmlFor="terms"
-              className="text-sm text-gray-600 dark:text-gray-400"
+              className="text-sm text-gray-600 "
             >
               I agree to the{" "}
               <a href="/terms" className="text-blue-600 hover:text-blue-500">
@@ -246,7 +258,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+            <span className="bg-white  px-2 text-gray-500">
               Or continue with
             </span>
           </div>
@@ -264,7 +276,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
+          <span className="text-gray-600 ">
             Already have an account?{" "}
           </span>
           <button

@@ -1,21 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
+import { getUserFromToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/products - Get all products with optional filtering
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const isFeatured = searchParams.get("isFeatured");
     const isActive = searchParams.get("isActive");
-    const limit = searchParams.get("limit");
-    const page = searchParams.get("page");
-    const admin = searchParams.get("admin"); // Add admin parameter
+    const limitParam = searchParams.get("limit");
+    const pageParam = searchParams.get("page");
+    const admin = searchParams.get("admin") === "true";
+
+    if (admin) {
+      const token = request.cookies.get("auth_token")?.value;
+      if (!token) {
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+
+      const user = await getUserFromToken(token);
+      if (!user || user.role !== "admin") {
+        return NextResponse.json(
+          { error: "Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
+
+    await connectDB();
+
+    const parsedLimit = Number.parseInt(limitParam || "", 10);
+    const parsedPage = Number.parseInt(pageParam || "", 10);
+    const hasValidLimit = Number.isFinite(parsedLimit) && parsedLimit > 0;
+    const hasValidPage = Number.isFinite(parsedPage) && parsedPage > 0;
 
     // Build filter object
     const filter: any = {};
@@ -29,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For admin requests, include both active and inactive products
-    if (admin === "true") {
+    if (admin) {
       // Don't filter by isActive for admin requests
     } else if (isActive !== null && isActive !== "") {
       filter.isActive = isActive === "true";
@@ -42,12 +66,12 @@ export async function GET(request: NextRequest) {
     let query = Product.find(filter).sort({ createdAt: -1 });
 
     // Apply pagination if specified
-    if (limit) {
-      query = query.limit(parseInt(limit));
+    if (hasValidLimit) {
+      query = query.limit(parsedLimit);
     }
 
-    if (page && limit) {
-      const skip = (parseInt(page) - 1) * parseInt(limit);
+    if (hasValidPage && hasValidLimit) {
+      const skip = (parsedPage - 1) * parsedLimit;
       query = query.skip(skip);
     }
 
@@ -60,8 +84,8 @@ export async function GET(request: NextRequest) {
       {
         products,
         total,
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : products.length,
+        page: hasValidPage ? parsedPage : 1,
+        limit: hasValidLimit ? parsedLimit : products.length,
       },
       {
         headers: {

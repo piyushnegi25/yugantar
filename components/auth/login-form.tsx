@@ -55,6 +55,17 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
       // Store user data in localStorage for client-side access
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      try {
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "user",
+            newValue: JSON.stringify(data.user),
+          })
+        );
+      } catch {
+        // Ignore cross-browser StorageEvent constructor issues.
+      }
+
       // Redirect based on role or callbackUrl
       if (data.user.role === "admin") {
         router.push("/admin");
@@ -63,6 +74,8 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
       } else {
         router.push("/");
       }
+
+      router.refresh();
     } catch (error) {
       console.error("Login error:", error);
       setError(error instanceof Error ? error.message : "Login failed");
@@ -84,11 +97,11 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardTitle className="text-2xl font-bold text-gray-900 ">
           Welcome Back
         </CardTitle>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sign in to your StyleSage account
+        <p className="text-gray-600 ">
+          Sign in to your Yugantar account
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -154,7 +167,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 text-sm">
               <input type="checkbox" className="rounded" disabled={isLoading} />
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-gray-600 ">
                 Remember me
               </span>
             </label>
@@ -176,7 +189,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+            <span className="bg-white  px-2 text-gray-500">
               Or continue with
             </span>
           </div>
@@ -194,7 +207,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
+          <span className="text-gray-600 ">
             Don't have an account?{" "}
           </span>
           <button

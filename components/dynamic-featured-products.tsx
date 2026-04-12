@@ -14,8 +14,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { type Product } from "@/lib/catalog";
-import { getTotalStock } from "@/lib/stock-normalization";
+import { AddToCart } from "@/components/add-to-cart";
+import { getTotalStock, normalizeStock } from "@/lib/stock-normalization";
 
 interface ApiProduct {
   _id: string;
@@ -29,7 +29,7 @@ interface ApiProduct {
   tags: string[];
   sizes: string[];
   colors: string[];
-  stock: { [size: string]: number };
+  stock: number | { [size: string]: number };
   isActive: boolean;
   isFeatured: boolean;
   rating: number;
@@ -37,7 +37,6 @@ interface ApiProduct {
   createdAt: string;
   updatedAt: string;
 }
-import { AddToCart } from "@/components/add-to-cart";
 
 export function DynamicFeaturedProducts() {
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -46,48 +45,59 @@ export function DynamicFeaturedProducts() {
     {}
   );
 
-  const loadProducts = async () => {
+  const loadProducts = async (signal?: AbortSignal) => {
     try {
-      // Fetch featured products from the API with cache busting
-      const response = await fetch(
-        `/api/products?isFeatured=true&_t=${Date.now()}`,
-        {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
-        // Initialize default sizes - select first available size
-        const defaultSizes: Record<string, string> = {};
-        data.products.forEach((product: ApiProduct) => {
-          // Find first size that's in stock
-          const availableSize = product.sizes.find(
-            (size) => (product.stock[size] || 0) > 0
-          );
-          defaultSizes[product._id] = availableSize || product.sizes[0] || "M";
-        });
-        setSelectedSizes(defaultSizes);
-      } else {
+      const response = await fetch(`/api/products?isFeatured=true&_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+        signal,
+      });
+
+      if (!response.ok) {
         console.error("Failed to fetch featured products");
+        return;
       }
+
+      const data = await response.json();
+      const fetchedProducts: ApiProduct[] = Array.isArray(data.products)
+        ? data.products
+        : [];
+
+      setProducts(fetchedProducts);
+
+      const defaultSizes: Record<string, string> = {};
+      fetchedProducts.forEach((product) => {
+        const normalizedStock = normalizeStock(product.stock, product.sizes);
+        const availableSize = product.sizes.find(
+          (size) => (normalizedStock[size] || 0) > 0
+        );
+
+        defaultSizes[product._id] = availableSize || product.sizes[0] || "M";
+      });
+
+      setSelectedSizes(defaultSizes);
     } catch (error) {
+      if ((error as Error)?.name === "AbortError") {
+        return;
+      }
+
       console.error("Failed to load products:", error);
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    loadProducts();
+    const controller = new AbortController();
+    loadProducts(controller.signal);
 
-    // Refresh when page becomes visible again (handles browser caching)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        loadProducts();
+        loadProducts(controller.signal);
       }
     };
 
@@ -95,32 +105,33 @@ export function DynamicFeaturedProducts() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      controller.abort();
     };
   }, []);
 
   const getProductBadge = (product: ApiProduct) => {
     if (product.isFeatured) return "Featured";
-    if (product.tags.includes("bestseller")) return "Bestseller";
-    if (product.tags.includes("new")) return "New";
-    if (product.tags.includes("viral")) return "Viral";
-    if (product.tags.includes("trending")) return "Trending";
+    if (product.tags?.includes("bestseller")) return "Bestseller";
+    if (product.tags?.includes("new")) return "New";
+    if (product.tags?.includes("viral")) return "Viral";
+    if (product.tags?.includes("trending")) return "Trending";
     return null;
   };
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="animate-pulse h-72">
-            <CardContent className="p-0 h-full flex flex-col">
-              <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-t-lg mb-2 flex-shrink-0" />
-              <div className="p-2 space-y-1 flex-1">
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full mt-auto" />
+          <div key={i} className="h-72 animate-pulse">
+            <div className="flex h-full flex-col p-0">
+              <div className="mb-2 aspect-square flex-shrink-0 rounded-t-lg bg-gray-200" />
+              <div className="flex-1 space-y-1 p-2">
+                <div className="h-3 w-3/4 rounded bg-gray-200" />
+                <div className="h-3 w-1/2 rounded bg-gray-200" />
+                <div className="mt-auto h-6 w-full rounded bg-gray-200" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -128,8 +139,8 @@ export function DynamicFeaturedProducts() {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+      <div className="py-12 text-center">
+        <p className="mb-4 text-xs text-muted-foreground">
           No featured products available
         </p>
         <Link href="/admin/catalog">
@@ -143,21 +154,25 @@ export function DynamicFeaturedProducts() {
     <Carousel
       opts={{
         align: "start",
-        loop: true,
+        loop: products.length > 4,
+        containScroll: "trimSnaps",
       }}
-      className="w-full"
+      className="w-full overflow-hidden"
     >
-      <CarouselContent>
+      <CarouselContent className="-ml-2 md:-ml-4">
         {products.map((product) => {
           const badge = getProductBadge(product);
+          const normalizedStock = normalizeStock(product.stock, product.sizes);
+          const totalStock = getTotalStock(product.stock, product.sizes);
+
           return (
             <CarouselItem
               key={product._id}
-              className="sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+              className="basis-[85%] pl-2 sm:basis-1/2 md:pl-4 lg:basis-1/3 xl:basis-1/4"
             >
-              <div className="p-1">
-                <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col min-h-96 hover:scale-105">
-                  <CardContent className="p-0 h-full flex flex-col">
+              <div className="h-full">
+                <Card className="group flex h-full min-h-96 flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <CardContent className="flex h-full flex-col p-0">
                     <div className="relative aspect-square w-full">
                       <Image
                         src={
@@ -166,20 +181,20 @@ export function DynamicFeaturedProducts() {
                         }
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform duration-300 rounded-t-lg"
+                        className="rounded-t-lg object-cover transition-transform duration-300"
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                       />
                       {badge && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <Badge className="absolute left-2 top-2 bg-red-500 hover:bg-red-600">
                           {badge}
                         </Badge>
                       )}
                       <Button
                         size="sm"
                         variant="outline"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute right-2 top-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                       >
-                        <Heart className="w-4 h-4" />
+                        <Heart className="h-4 w-4" />
                       </Button>
                       {product.originalPrice && (
                         <Badge className="absolute bottom-2 left-2 bg-green-500">
@@ -188,30 +203,31 @@ export function DynamicFeaturedProducts() {
                         </Badge>
                       )}
                     </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+
+                    <div className="flex flex-1 flex-col p-4">
+                      <h3 className="mb-2 line-clamp-1 text-lg font-semibold transition-colors group-hover:text-blue-600">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2 flex-grow">
+                      <p className="mb-3 flex-grow text-sm text-muted-foreground line-clamp-2">
                         {product.description}
                       </p>
-                      <div className="flex items-center gap-2 mb-3">
+
+                      <div className="mb-3 flex items-center gap-2">
                         <div className="flex items-center">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium ml-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="ml-1 text-sm font-medium">
                             {product.rating}
                           </span>
                         </div>
                         <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-xs text-muted-foreground">
                           {product.reviews} reviews
                         </span>
                       </div>
 
-                      {/* Price Section */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900 dark:text-white">
+                          <span className="text-xl font-bold text-gray-900">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
@@ -222,16 +238,16 @@ export function DynamicFeaturedProducts() {
                         </div>
                       </div>
 
-                      {/* Size Options */}
                       <div className="mb-3">
-                        <div className="flex items-start gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">
+                        <div className="mb-2 flex items-start gap-2">
+                          <span className="flex-shrink-0 text-sm font-medium text-gray-700">
                             Size:
                           </span>
-                          <div className="flex flex-wrap gap-1 flex-1 min-w-0">
+                          <div className="flex min-w-0 flex-1 flex-wrap gap-1">
                             {product.sizes.map((size) => {
                               const isOutOfStock =
-                                (product.stock[size] || 0) === 0;
+                                (normalizedStock[size] || 0) === 0;
+
                               return (
                                 <button
                                   key={size}
@@ -244,12 +260,12 @@ export function DynamicFeaturedProducts() {
                                     }
                                   }}
                                   disabled={isOutOfStock}
-                                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
+                                  className={`flex-shrink-0 rounded-md border px-3 py-2 text-sm transition-colors ${
                                     isOutOfStock
-                                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                                      ? "cursor-not-allowed border-gray-300 bg-gray-300 text-gray-500 opacity-60"
                                       : selectedSizes[product._id] === size
-                                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        ? "border-transparent bg-gray-900 text-white"
+                                        : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200"
                                   }`}
                                 >
                                   {size}
@@ -260,7 +276,6 @@ export function DynamicFeaturedProducts() {
                         </div>
                       </div>
 
-                      {/* Add to Cart Section */}
                       <div className="mt-auto">
                         <AddToCart
                           key={`${product._id}-${selectedSizes[product._id]}`}
@@ -278,7 +293,7 @@ export function DynamicFeaturedProducts() {
                               ? product.colors
                               : ["Black"]
                           }
-                          stock={product.stock}
+                          stock={normalizedStock}
                           category={product.category.join(", ")}
                           variant="default"
                           size="sm"
@@ -286,27 +301,16 @@ export function DynamicFeaturedProducts() {
                           compact={true}
                         />
 
-                        {/* Stock Information */}
-                        {(() => {
-                          const totalStock = getTotalStock(
-                            product.stock,
-                            product.sizes
-                          );
-                          return (
-                            <>
-                              {totalStock <= 5 && totalStock > 0 && (
-                                <p className="text-orange-600 text-xs mt-1 text-center">
-                                  Only {totalStock} left in stock!
-                                </p>
-                              )}
-                              {totalStock === 0 && (
-                                <p className="text-red-600 text-xs mt-1 text-center">
-                                  Out of stock
-                                </p>
-                              )}
-                            </>
-                          );
-                        })()}
+                        {totalStock <= 5 && totalStock > 0 && (
+                          <p className="mt-1 text-center text-xs text-orange-600">
+                            Only {totalStock} left in stock!
+                          </p>
+                        )}
+                        {totalStock === 0 && (
+                          <p className="mt-1 text-center text-xs text-red-600">
+                            Out of stock
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -316,8 +320,8 @@ export function DynamicFeaturedProducts() {
           );
         })}
       </CarouselContent>
-      <CarouselPrevious className="hidden md:flex" />
-      <CarouselNext className="hidden md:flex" />
+      <CarouselPrevious className="left-2 top-1/2 z-10 hidden -translate-y-1/2 border-border bg-background/95 hover:bg-background md:flex" />
+      <CarouselNext className="right-2 top-1/2 z-10 hidden -translate-y-1/2 border-border bg-background/95 hover:bg-background md:flex" />
     </Carousel>
   );
 }

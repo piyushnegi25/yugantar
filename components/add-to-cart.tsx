@@ -66,13 +66,17 @@ export function AddToCart({
     error: stockError,
   } = useStockCheck(productId, selectedSize, true);
 
-  // Sync selected size with defaultSize prop changes
+  // Sync selected size with provided size/stock changes
   useEffect(() => {
-    console.log(
-      `AddToCart: Updating selectedSize from ${selectedSize} to ${defaultSize} for product ${productId}`
-    );
-    setSelectedSize(defaultSize);
-  }, [defaultSize, selectedSize, productId]);
+    const preferredSize =
+      sizes.includes(defaultSize) && (stock[defaultSize] || 0) > 0
+        ? defaultSize
+        : sizes.find((sizeOption) => (stock[sizeOption] || 0) > 0) ||
+          sizes[0] ||
+          defaultSize;
+
+    setSelectedSize(preferredSize);
+  }, [defaultSize, sizes, stock]);
 
   const handleAddToCart = async () => {
     // Use real-time stock if available, fallback to passed stock prop
@@ -87,10 +91,6 @@ export function AddToCart({
       });
       return;
     }
-
-    console.log(
-      `AddToCart: Adding to cart - Product: ${name}, Size: ${selectedSize}, Color: ${selectedColor}, Available Stock: ${availableStock}`
-    );
 
     setIsAdding(true);
     try {
@@ -168,7 +168,7 @@ export function AddToCart({
         </Button>
 
         {/* Stock warning */}
-        {!stockLoading && !stockError && (
+        {!stockLoading && (
           <>
             {isLowStock && !isOutOfStock && (
               <p className="text-orange-600 text-xs text-center">
@@ -200,7 +200,7 @@ export function AddToCart({
                 className={`px-2 py-1 text-xs border rounded ${
                   selectedColor === color
                     ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                    : "bg-white  border-gray-300 "
                 }`}
               >
                 {color}
@@ -228,10 +228,10 @@ export function AddToCart({
                   disabled={isOutOfStock}
                   className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
                     isOutOfStock
-                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                      ? "bg-gray-300  text-gray-500  border-gray-300  cursor-not-allowed opacity-60"
                       : selectedSize === sizeOption
-                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      ? "bg-gray-900 text-white border-transparent  "
+                      : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
                   }`}
                 >
                   {sizeOption}
@@ -272,7 +272,7 @@ export function AddToCart({
       </Button>
 
       {/* Stock information */}
-      {!stockLoading && !stockError && (
+      {!stockLoading && (
         <>
           {isLowStock && !isOutOfStock && (
             <p className="text-orange-600 text-xs mt-1">
