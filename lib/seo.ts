@@ -79,8 +79,7 @@ export const siteConfig = {
 };
 
 export const domainMigrationConfig = {
-  oldDomain:
-    process.env.NEXT_PUBLIC_OLD_APP_URL || "https://www.stylesage.me",
+  oldDomain: "https://www.stylesage.me",
   newDomain: process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio",
 };
 

@@ -56,7 +56,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    const razorpayKeyId =
+      process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!razorpayKeyId || !razorpayKeySecret) {
       return NextResponse.json(
         { success: false, error: "Payment gateway configuration missing" },
         { status: 500 }
@@ -91,8 +95,8 @@ export async function POST(request: NextRequest) {
     }
 
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+      key_id: razorpayKeyId,
+      key_secret: razorpayKeySecret,
     });
 
     const options = {

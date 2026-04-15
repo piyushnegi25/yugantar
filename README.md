@@ -87,7 +87,11 @@ MONGODB_URI=your_mongodb_connection_string
 # Authentication
 JWT_SECRET=your_jwt_secret
 NEXT_PUBLIC_APP_URL=https://yugantar.studio
-NEXT_PUBLIC_OLD_APP_URL=https://www.stylesage.me
+
+# Razorpay
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
 
 # Google OAuth
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
