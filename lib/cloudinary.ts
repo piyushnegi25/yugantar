@@ -1,5 +1,16 @@
 import { v2 as cloudinary } from "cloudinary";
 
+if (
+  !process.env.CLOUDINARY_URL &&
+  (!process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET)
+) {
+  throw new Error(
+    "Cloudinary configuration missing. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME/CLOUDINARY_API_KEY/CLOUDINARY_API_SECRET"
+  );
+}
+
 // Configure Cloudinary - it will automatically parse CLOUDINARY_URL if provided
 // or use individual components
 cloudinary.config({

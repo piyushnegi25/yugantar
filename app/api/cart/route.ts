@@ -73,6 +73,38 @@ export async function POST(request: NextRequest) {
     const { items, sessionId }: { items: ICartItem[]; sessionId: string } =
       body;
 
+    if (!Array.isArray(items)) {
+      return NextResponse.json(
+        { error: "Invalid cart items payload" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      items.some(
+        (item) =>
+          !item ||
+          typeof item.productId !== "string" ||
+          !item.productId.trim() ||
+          typeof item.name !== "string" ||
+          !item.name.trim() ||
+          typeof item.size !== "string" ||
+          !item.size.trim() ||
+          typeof item.color !== "string" ||
+          !item.color.trim() ||
+          !Number.isFinite(Number(item.price)) ||
+          Number(item.price) < 0 ||
+          !Number.isInteger(Number(item.quantity)) ||
+          Number(item.quantity) <= 0 ||
+          Number(item.quantity) > 20
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Invalid cart item values" },
+        { status: 400 }
+      );
+    }
+
     // Get user from token if available
     const token = request.cookies.get("auth_token")?.value;
     let userId: string | null = null;

@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Banner, { type BannerPosition } from "@/lib/models/Banner";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/security/auth-guards";
+import {
+  parsePositiveInt,
+  sanitizeLinkUrl,
+  sanitizeName,
+} from "@/lib/security/validation";
+import { validateImageFiles } from "@/lib/security/upload";
 
 export const dynamic = "force-dynamic";
 
@@ -15,20 +21,8 @@ const VALID_POSITIONS: BannerPosition[] = [
 ];
 
 async function checkAdminAuth(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
-  if (!token) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
-
-  const user = await getUserFromToken(token);
-  if (!user || user.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
-
-  return user;
+  const auth = await requireAdminUser(request);
+  return auth.error || auth.user;
 }
 
 function getPublicIdFromUrl(url: string): string {
@@ -78,8 +72,8 @@ export async function GET(request: NextRequest) {
 
     let query = Banner.find(filter).sort({ position: 1, order: 1, createdAt: -1 });
     if (limitParam) {
-      const limit = Number.parseInt(limitParam, 10);
-      if (Number.isFinite(limit) && limit > 0) {
+      const limit = parsePositiveInt(limitParam, 0, { min: 1, max: 50 });
+      if (limit > 0) {
         query = query.limit(limit);
       }
     }
@@ -102,14 +96,14 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const formData = await request.formData();
-    const name = ((formData.get("name") as string) || "").trim();
+    const name = sanitizeName(formData.get("name"));
     const position = (formData.get("position") as string) as BannerPosition;
     const alt = ((formData.get("alt") as string) || "Homepage banner").trim();
     const title = ((formData.get("title") as string) || "").trim();
     const subtitle = ((formData.get("subtitle") as string) || "").trim();
     const ctaText = ((formData.get("ctaText") as string) || "").trim();
-    const linkUrl = ((formData.get("linkUrl") as string) || "/collections").trim();
-    const order = Number.parseInt((formData.get("order") as string) || "1", 10);
+    const linkUrl = sanitizeLinkUrl(formData.get("linkUrl") || "/collections");
+    const order = parsePositiveInt(formData.get("order"), 1, { min: 1, max: 999 });
     const isActive = (formData.get("isActive") as string) === "true";
     const imageFile = formData.get("image") as File | null;
 
@@ -120,14 +114,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!imageFile || imageFile.size <= 0) {
+    const imageFiles = imageFile && imageFile.size > 0 ? [imageFile] : [];
+    const imageValidation = validateImageFiles(imageFiles);
+    if (!imageValidation.valid) {
+      return NextResponse.json(
+        { error: imageValidation.error || "Banner image is required" },
+        { status: 400 }
+      );
+    }
+
+    const validImageFile = imageFiles[0];
+    if (!validImageFile) {
       return NextResponse.json(
         { error: "Banner image is required" },
         { status: 400 }
       );
     }
 
-    const buffer = Buffer.from(await imageFile.arrayBuffer());
+    const buffer = Buffer.from(await validImageFile.arrayBuffer());
     const uploadResult = (await uploadImage(buffer, "homepage-banners")) as {
       secure_url: string;
     };
@@ -141,9 +145,9 @@ export async function POST(request: NextRequest) {
       subtitle: subtitle || undefined,
       ctaText: ctaText || undefined,
       linkUrl,
-      order: Number.isFinite(order) ? order : 1,
-      isActive,
-    });
+        order,
+        isActive,
+      });
 
     return NextResponse.json({ message: "Banner created successfully", banner });
   } catch (error) {
@@ -163,14 +167,14 @@ export async function PUT(request: NextRequest) {
 
     const formData = await request.formData();
     const bannerId = formData.get("bannerId") as string;
-    const name = ((formData.get("name") as string) || "").trim();
+    const name = sanitizeName(formData.get("name"));
     const position = (formData.get("position") as string) as BannerPosition;
     const alt = ((formData.get("alt") as string) || "Homepage banner").trim();
     const title = ((formData.get("title") as string) || "").trim();
     const subtitle = ((formData.get("subtitle") as string) || "").trim();
     const ctaText = ((formData.get("ctaText") as string) || "").trim();
-    const linkUrl = ((formData.get("linkUrl") as string) || "/collections").trim();
-    const order = Number.parseInt((formData.get("order") as string) || "1", 10);
+    const linkUrl = sanitizeLinkUrl(formData.get("linkUrl") || "/collections");
+    const order = parsePositiveInt(formData.get("order"), 1, { min: 1, max: 999 });
     const isActive = (formData.get("isActive") as string) === "true";
     const imageFile = formData.get("image") as File | null;
 
@@ -189,6 +193,14 @@ export async function PUT(request: NextRequest) {
     let imageUrl = existingBanner.image;
 
     if (imageFile && imageFile.size > 0) {
+      const imageValidation = validateImageFiles([imageFile]);
+      if (!imageValidation.valid) {
+        return NextResponse.json(
+          { error: imageValidation.error || "Invalid image" },
+          { status: 400 }
+        );
+      }
+
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       const uploadResult = (await uploadImage(buffer, "homepage-banners")) as {
         secure_url: string;
@@ -214,7 +226,7 @@ export async function PUT(request: NextRequest) {
         subtitle: subtitle || undefined,
         ctaText: ctaText || undefined,
         linkUrl,
-        order: Number.isFinite(order) ? order : 1,
+        order,
         isActive,
       },
       { new: true, runValidators: true }

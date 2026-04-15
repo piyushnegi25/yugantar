@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
-import { getUserFromToken } from "@/lib/auth";
 import { restoreStock } from "@/lib/stock-utils";
+import {
+  requireAdminUser,
+  requireAuthenticatedUser,
+} from "@/lib/security/auth-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -14,32 +17,11 @@ const ORDER_STATUSES = new Set([
   "cancelled",
 ]);
 
-async function getAuthenticatedUser(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
-
-  if (!token) {
-    return NextResponse.json(
-      { success: false, error: "Authentication required" },
-      { status: 401 }
-    );
-  }
-
-  const user = await getUserFromToken(token);
-  if (!user) {
-    return NextResponse.json(
-      { success: false, error: "Invalid authentication" },
-      { status: 401 }
-    );
-  }
-
-  return user;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await getAuthenticatedUser(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
+    const auth = await requireAuthenticatedUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
     const { searchParams } = new URL(request.url);
@@ -49,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     let orders;
     if (isAdmin) {
-      if (authResult.role !== "admin") {
+      if (auth.user.role !== "admin") {
         return NextResponse.json(
           { success: false, error: "Admin access required" },
           { status: 403 }
@@ -60,7 +42,7 @@ export async function GET(request: NextRequest) {
       orders = await Order.find({}).sort({ createdAt: -1 }).exec();
     } else {
       // User gets their own orders
-      orders = await Order.find({ userId: authResult._id.toString() })
+      orders = await Order.find({ userId: auth.user._id.toString() })
         .sort({ createdAt: -1 })
         .exec();
     }
@@ -77,16 +59,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const authResult = await getAuthenticatedUser(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
-    }
-
-    if (authResult.role !== "admin") {
-      return NextResponse.json(
-        { success: false, error: "Admin access required" },
-        { status: 403 }
-      );
+    const auth = await requireAdminUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
     const { orderId, orderStatus } = await request.json();

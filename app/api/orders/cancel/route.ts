@@ -2,24 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { restoreStock } from "@/lib/stock-utils";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const user = await getUserFromToken(token);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Invalid authentication" },
-        { status: 401 }
-      );
+    const auth = await requireAuthenticatedUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
     const { orderId, reason } = await request.json();
@@ -42,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (user.role !== "admin" && order.userId !== user._id.toString()) {
+    if (auth.user.role !== "admin" && order.userId !== auth.user._id.toString()) {
       return NextResponse.json(
         { success: false, error: "Not authorized to cancel this order" },
         { status: 403 }

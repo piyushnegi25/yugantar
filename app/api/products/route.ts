@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/security/auth-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -15,22 +15,12 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get("limit");
     const pageParam = searchParams.get("page");
     const admin = searchParams.get("admin") === "true";
+    const slug = searchParams.get("slug");
 
     if (admin) {
-      const token = request.cookies.get("auth_token")?.value;
-      if (!token) {
-        return NextResponse.json(
-          { error: "Authentication required" },
-          { status: 401 }
-        );
-      }
-
-      const user = await getUserFromToken(token);
-      if (!user || user.role !== "admin") {
-        return NextResponse.json(
-          { error: "Admin access required" },
-          { status: 403 }
-        );
+      const auth = await requireAdminUser(request);
+      if (auth.error) {
+        return auth.error;
       }
     }
 
@@ -46,6 +36,10 @@ export async function GET(request: NextRequest) {
 
     if (category) {
       filter.category = { $in: [category] };
+    }
+
+    if (slug) {
+      filter.slug = slug;
     }
 
     if (isFeatured !== null && isFeatured !== "") {
@@ -76,6 +70,21 @@ export async function GET(request: NextRequest) {
     }
 
     const products = await query.exec();
+
+    if (slug) {
+      const single = products[0] || null;
+      return NextResponse.json(
+        { product: single },
+        {
+          status: single ? 200 : 404,
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
+    }
 
     // Get total count for pagination
     const total = await Product.countDocuments(filter);

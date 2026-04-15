@@ -4,7 +4,8 @@ import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { reduceStock } from "@/lib/stock-utils";
 import { NextRequest } from "next/server";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 function isSignatureValid(
   orderId: string,
@@ -27,19 +28,28 @@ function isSignatureValid(
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
-      );
+    const auth = await requireAuthenticatedUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
-    const user = await getUserFromToken(token);
-    if (!user) {
+    const rateLimit = checkRateLimit(`payment:verify:${auth.user._id.toString()}`, {
+      limit: 30,
+      windowMs: 10 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { success: false, error: "Invalid authentication" },
-        { status: 401 }
+        {
+          success: false,
+          error: "Too many verification attempts. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": `${Math.ceil((rateLimit.resetAt - Date.now()) / 1000)}`,
+          },
+        }
       );
     }
 
@@ -74,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     const order = await Order.findOne({
       orderId,
-      userId: user._id.toString(),
+      userId: auth.user._id.toString(),
     });
 
     if (!order) {
@@ -124,7 +134,7 @@ export async function POST(request: NextRequest) {
 
       // Update order with payment details
       await Order.findOneAndUpdate(
-        { orderId, userId: user._id.toString() },
+        { orderId, userId: auth.user._id.toString() },
         {
           "payment.razorpayPaymentId": razorpay_payment_id,
           "payment.razorpaySignature": razorpay_signature,
@@ -142,7 +152,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Update order as failed
       await Order.findOneAndUpdate(
-        { orderId, userId: user._id.toString() },
+        { orderId, userId: auth.user._id.toString() },
         {
           "payment.status": "failed",
         }

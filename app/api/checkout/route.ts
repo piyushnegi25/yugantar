@@ -4,49 +4,11 @@ import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { validateStock } from "@/lib/stock-utils";
 import { v4 as uuidv4 } from "uuid";
-import { getUserFromToken } from "@/lib/auth";
-
-interface CheckoutItem {
-  productId: string;
-  title: string;
-  price: number;
-  quantity: number;
-  size: string;
-  image: string;
-}
-
-function normalizeItems(items: unknown): CheckoutItem[] {
-  if (!Array.isArray(items)) {
-    return [];
-  }
-
-  return items.map((item) => ({
-    productId: String(item?.productId || "").trim(),
-    title: String(item?.title || "").trim(),
-    price: Number(item?.price),
-    quantity: Number(item?.quantity),
-    size: String(item?.size || "").trim(),
-    image: String(item?.image || "").trim(),
-  }));
-}
-
-function hasValidItems(items: CheckoutItem[]) {
-  if (!items.length) {
-    return false;
-  }
-
-  return items.every(
-    (item) =>
-      !!item.productId &&
-      !!item.title &&
-      !!item.size &&
-      !!item.image &&
-      Number.isFinite(item.price) &&
-      item.price >= 0 &&
-      Number.isInteger(item.quantity) &&
-      item.quantity > 0
-  );
-}
+import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
+import {
+  buildPricedCheckoutItems,
+  computeOrderTotals,
+} from "@/lib/services/pricing";
 
 function hasValidAddress(address: unknown) {
   if (!address || typeof address !== "object") {
@@ -72,26 +34,15 @@ function hasValidAddress(address: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const user = await getUserFromToken(token);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Invalid authentication" },
-        { status: 401 }
-      );
+    const auth = await requireAuthenticatedUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
     const { items, address } = await request.json();
-    const normalizedItems = normalizeItems(items);
+    const pricedItems = await buildPricedCheckoutItems(items);
 
-    if (!hasValidItems(normalizedItems)) {
+    if (!pricedItems) {
       return NextResponse.json(
         { success: false, error: "Invalid order items" },
         { status: 400 }
@@ -114,16 +65,10 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const subtotal = Number(
-      normalizedItems
-        .reduce((sum, item) => sum + item.price * item.quantity, 0)
-        .toFixed(2)
-    );
-    const shipping = subtotal > 1199 ? 0 : 99;
-    const total = Number((subtotal + shipping).toFixed(2));
+    const { subtotal, shipping, total } = computeOrderTotals(pricedItems);
 
     // Validate stock availability before creating order
-    const stockValidation = await validateStock(normalizedItems);
+    const stockValidation = await validateStock(pricedItems);
     if (!stockValidation.valid) {
       const outOfStockDetails = stockValidation.outOfStockItems
         .map(
@@ -163,9 +108,9 @@ export async function POST(request: NextRequest) {
 
     // Create order in database
     const order = new Order({
-      userId: user._id.toString(),
+      userId: auth.user._id.toString(),
       orderId,
-      items: normalizedItems,
+      items: pricedItems,
       address,
       payment: {
         razorpayOrderId: razorpayOrder.id,

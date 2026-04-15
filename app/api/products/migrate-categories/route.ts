@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/security/auth-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -9,20 +9,9 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const user = await getUserFromToken(token);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
+    const auth = await requireAdminUser(request);
+    if (auth.error) {
+      return auth.error;
     }
 
     await connectDB();
