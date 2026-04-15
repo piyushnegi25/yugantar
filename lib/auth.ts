@@ -1,16 +1,24 @@
-import { SignJWT, jwtVerify } from "jose"
-import bcrypt from "bcryptjs"
-import connectDB from "./mongodb"
-import User, { type IUser } from "./models/User"
+import { SignJWT, jwtVerify } from "jose";
+import bcrypt from "bcryptjs";
+import connectDB from "./mongodb";
+import User, { type IUser } from "./models/User";
+import { sanitizeEmail } from "@/lib/security/validation";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key-change-in-production")
+const jwtSecretValue = process.env.JWT_SECRET;
+if (!jwtSecretValue || jwtSecretValue.length < 32) {
+  throw new Error(
+    "JWT_SECRET must be set and at least 32 characters long"
+  );
+}
+
+const JWT_SECRET = new TextEncoder().encode(jwtSecretValue);
 
 export interface JWTPayload {
-  userId: string
-  email: string
-  role: string
-  iat: number
-  exp: number
+  userId: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
 }
 
 // Create JWT token
@@ -23,50 +31,51 @@ export async function createJWT(user: IUser): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(JWT_SECRET)
+    .sign(JWT_SECRET);
 }
 
 // Verify JWT token
 export async function verifyJWT(token: string): Promise<JWTPayload> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as unknown as JWTPayload
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as JWTPayload;
   } catch (error) {
-    throw new Error("Invalid token")
+    throw new Error("Invalid token");
   }
 }
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 12)
+  return await bcrypt.hash(password, 12);
 }
 
 // Verify password
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return await bcrypt.compare(password, hashedPassword)
+  return await bcrypt.compare(password, hashedPassword);
 }
 
 // Get user by ID
 export async function getUserById(id: string): Promise<IUser | null> {
   try {
-    await connectDB()
-    const user = await User.findById(id)
-    return user
+    await connectDB();
+    const user = await User.findById(id);
+    return user;
   } catch (error) {
-    console.error("Error getting user by ID:", error)
-    return null
+    console.error("Error getting user by ID:", error);
+    return null;
   }
 }
 
 // Get user by email
 export async function getUserByEmail(email: string): Promise<IUser | null> {
   try {
-    await connectDB()
-    const user = await User.findOne({ email: email.toLowerCase() })
-    return user
+    await connectDB();
+    const normalizedEmail = sanitizeEmail(email);
+    const user = await User.findOne({ email: normalizedEmail });
+    return user;
   } catch (error) {
-    console.error("Error getting user by email:", error)
-    return null
+    console.error("Error getting user by email:", error);
+    return null;
   }
 }
 
@@ -81,92 +90,112 @@ export async function createUser(userData: {
   googleId?: string
 }): Promise<IUser> {
   try {
-    await connectDB()
+    await connectDB();
 
     const user = new User({
       ...userData,
-      email: userData.email.toLowerCase(),
+      email: sanitizeEmail(userData.email),
       isEmailVerified: userData.provider === "google",
       lastLoginAt: new Date(),
-    })
+    });
 
-    await user.save()
-    return user
+    await user.save();
+    return user;
   } catch (error) {
-    console.error("Error creating user:", error)
-    throw new Error("Failed to create user")
+    console.error("Error creating user:", error);
+    throw new Error("Failed to create user");
   }
 }
 
 // Update user last login
 export async function updateUserLastLogin(userId: string): Promise<void> {
   try {
-    await connectDB()
-    await User.findByIdAndUpdate(userId, { lastLoginAt: new Date() })
+    await connectDB();
+    await User.findByIdAndUpdate(userId, { lastLoginAt: new Date() });
   } catch (error) {
-    console.error("Error updating last login:", error)
+    console.error("Error updating last login:", error);
   }
 }
 
 // Authenticate user with email/password
 export async function authenticateUser(email: string, password: string): Promise<IUser | null> {
   try {
-    await connectDB()
-    const user = await User.findOne({ email: email.toLowerCase() })
+    await connectDB();
+    const normalizedEmail = sanitizeEmail(email);
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user || user.provider !== "email" || !user.password) {
-      return null
+      return null;
     }
 
-    const isValid = await verifyPassword(password, user.password)
+    const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
-      return null
+      return null;
     }
 
     // Update last login
-    user.lastLoginAt = new Date()
-    await user.save()
+    user.lastLoginAt = new Date();
+    await user.save();
 
-    return user
+    return user;
   } catch (error) {
-    console.error("Error authenticating user:", error)
-    return null
+    console.error("Error authenticating user:", error);
+    return null;
   }
 }
 
 // Get user from token
 export async function getUserFromToken(token: string): Promise<IUser | null> {
   try {
-    const payload = await verifyJWT(token)
-    const user = await getUserById(payload.userId)
-    return user
+    const payload = await verifyJWT(token);
+    const user = await getUserById(payload.userId);
+    return user;
   } catch (error) {
-    return null
+    return null;
   }
 }
 
 // Initialize default admin user
 export async function initializeDefaultAdmin(): Promise<void> {
   try {
-    await connectDB()
+    await connectDB();
 
-    const adminExists = await User.findOne({ email: "admin@stylesage.com" })
+    const adminEmail = sanitizeEmail(
+      process.env.DEFAULT_ADMIN_EMAIL || "admin@yugantar.studio"
+    );
+    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "";
+
+    if (!adminEmail || !adminPassword) {
+      console.warn(
+        "Skipping default admin initialization: DEFAULT_ADMIN_EMAIL or DEFAULT_ADMIN_PASSWORD missing"
+      );
+      return;
+    }
+
+    if (adminPassword.length < 12) {
+      console.warn(
+        "Skipping default admin initialization: DEFAULT_ADMIN_PASSWORD must be at least 12 characters"
+      );
+      return;
+    }
+
+    const adminExists = await User.findOne({ email: adminEmail });
     if (!adminExists) {
-      const hashedPassword = await hashPassword("admin123")
+      const hashedPassword = await hashPassword(adminPassword);
 
       await User.create({
-        email: "admin@stylesage.com",
+        email: adminEmail,
         name: "Admin User",
         password: hashedPassword,
         role: "admin",
         provider: "email",
         isEmailVerified: true,
-      })
+      });
 
-      console.log("✅ Default admin user created")
+      console.log("✅ Default admin user created");
     }
   } catch (error) {
-    console.error("Error initializing admin:", error)
-    throw error
+    console.error("Error initializing admin:", error);
+    throw error;
   }
 }

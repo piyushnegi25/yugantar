@@ -47,6 +47,18 @@ export function UserMenu() {
             const data = await response.json();
             setUser(data.user);
             localStorage.setItem("user", JSON.stringify(data.user));
+
+            try {
+              window.dispatchEvent(
+                new StorageEvent("storage", {
+                  key: "user",
+                  newValue: JSON.stringify(data.user),
+                })
+              );
+            } catch {
+              // Ignore cross-browser StorageEvent constructor issues.
+            }
+
             setIsLoading(false);
             return;
           } else {
@@ -54,6 +66,17 @@ export function UserMenu() {
             setUser(null);
             localStorage.removeItem("user");
             localStorage.removeItem("auth_token");
+
+            try {
+              window.dispatchEvent(
+                new StorageEvent("storage", {
+                  key: "user",
+                  newValue: null,
+                })
+              );
+            } catch {
+              // Ignore cross-browser StorageEvent constructor issues.
+            }
           }
         } catch (error) {
           console.error("Failed to fetch user from server:", error);

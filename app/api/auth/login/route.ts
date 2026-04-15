@@ -1,18 +1,52 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateUser, createJWT } from "@/lib/auth";
+import { getAuthCookieOptions } from "@/lib/security/cookies";
+import {
+  isValidEmail,
+  sanitizeEmail,
+} from "@/lib/security/validation";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
+    const normalizedEmail = sanitizeEmail(email);
 
-    if (!email || !password) {
+    const clientIp =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+    const rateLimitKey = `auth:login:${clientIp}:${normalizedEmail}`;
+    const rateLimit = checkRateLimit(rateLimitKey, {
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Too many login attempts. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": `${Math.ceil((rateLimit.resetAt - Date.now()) / 1000)}`,
+          },
+        }
+      );
+    }
+
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    const user = await authenticateUser(email, password);
+    if (!isValidEmail(normalizedEmail)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    const user = await authenticateUser(normalizedEmail, password);
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -34,12 +68,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Set HTTP-only cookie
-    response.cookies.set("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    });
+    response.cookies.set("auth_token", token, getAuthCookieOptions());
 
     return response;
   } catch (error) {

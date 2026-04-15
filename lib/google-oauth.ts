@@ -1,4 +1,6 @@
 import fetch from "node-fetch";
+import crypto from "crypto";
+import { sanitizeCallbackUrl } from "@/lib/security/validation";
 
 // Google OAuth configuration
 export const GOOGLE_OAUTH_CONFIG = {
@@ -12,6 +14,21 @@ export const GOOGLE_OAUTH_CONFIG = {
   prompt: "consent",
 };
 
+const OAUTH_STATE_SIGNING_SECRET =
+  process.env.GOOGLE_OAUTH_STATE_SECRET || process.env.JWT_SECRET || "";
+
+if (!OAUTH_STATE_SIGNING_SECRET || OAUTH_STATE_SIGNING_SECRET.length < 32) {
+  throw new Error(
+    "GOOGLE_OAUTH_STATE_SECRET (or JWT_SECRET fallback) must be set and at least 32 characters"
+  );
+}
+
+type OAuthStatePayload = {
+  csrf: string;
+  callbackUrl: string;
+  iat: number;
+};
+
 // Google OAuth URLs
 export const GOOGLE_OAUTH_URLS = {
   authorize: "https://accounts.google.com/o/oauth2/v2/auth",
@@ -21,10 +38,15 @@ export const GOOGLE_OAUTH_URLS = {
 
 // Generate Google OAuth URL
 export function getGoogleOAuthURL(callbackUrl?: string): string {
-  const stateObj = {
+  const stateObj: OAuthStatePayload = {
     csrf: generateState(),
-    callbackUrl: callbackUrl || "/",
+    callbackUrl: sanitizeCallbackUrl(callbackUrl || "/"),
+    iat: Date.now(),
   };
+
+  const encodedPayload = Buffer.from(JSON.stringify(stateObj)).toString("base64url");
+  const signature = createStateSignature(encodedPayload);
+
   const params = new URLSearchParams({
     client_id: GOOGLE_OAUTH_CONFIG.clientId,
     redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri,
@@ -32,17 +54,78 @@ export function getGoogleOAuthURL(callbackUrl?: string): string {
     response_type: GOOGLE_OAUTH_CONFIG.responseType,
     access_type: GOOGLE_OAUTH_CONFIG.accessType,
     prompt: GOOGLE_OAUTH_CONFIG.prompt,
-    state: btoa(JSON.stringify(stateObj)),
+    state: `${encodedPayload}.${signature}`,
   });
   return `${GOOGLE_OAUTH_URLS.authorize}?${params.toString()}`;
 }
 
 // Generate random state for CSRF protection
 function generateState(): string {
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15)
+  return crypto.randomBytes(24).toString("hex");
+}
+
+function createStateSignature(payload: string) {
+  return crypto
+    .createHmac("sha256", OAUTH_STATE_SIGNING_SECRET)
+    .update(payload)
+    .digest("hex");
+}
+
+export function parseAndValidateOAuthState(
+  value: string | null,
+  maxAgeMs: number = 10 * 60 * 1000
+): OAuthStatePayload | null {
+  if (!value) {
+    return null;
+  }
+
+  const [payload, signature] = value.split(".");
+  if (!payload || !signature) {
+    return null;
+  }
+
+  const expectedSignature = createStateSignature(payload);
+  if (expectedSignature.length !== signature.length) {
+    return null;
+  }
+
+  const validSignature = crypto.timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(signature)
   );
+  if (!validSignature) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
+    ) as OAuthStatePayload;
+
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    if (typeof parsed.csrf !== "string" || parsed.csrf.length < 16) {
+      return null;
+    }
+
+    if (typeof parsed.iat !== "number") {
+      return null;
+    }
+
+    if (Date.now() - parsed.iat > maxAgeMs) {
+      return null;
+    }
+
+    return {
+      csrf: parsed.csrf,
+      callbackUrl: sanitizeCallbackUrl(parsed.callbackUrl || "/"),
+      iat: parsed.iat,
+    };
+  } catch {
+    return null;
+  }
 }
 
 // Check if Google OAuth is configured
@@ -64,28 +147,15 @@ export async function exchangeCodeForTokens(code: string): Promise<{
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
 
-  console.log("Google OAuth Debug Info:");
-  console.log("- Client ID configured:", !!clientId);
-  console.log("- Client Secret configured:", !!clientSecret);
-  console.log("- Redirect URI:", redirectUri);
-  console.log("- Authorization code received:", !!code);
-
   if (!clientSecret) {
-    console.error("GOOGLE_CLIENT_SECRET environment variable is not set");
     throw new Error("Google Client Secret not configured");
   }
 
   if (!clientId) {
-    console.error(
-      "NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not set"
-    );
     throw new Error("Google Client ID not configured");
   }
 
   if (!redirectUri) {
-    console.error(
-      "NEXT_PUBLIC_GOOGLE_REDIRECT_URI environment variable is not set"
-    );
     throw new Error("Google Redirect URI not configured");
   }
 

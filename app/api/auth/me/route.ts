@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getUserFromToken } from "@/lib/auth";
+import { getExpiredAuthCookieOptions } from "@/lib/security/cookies";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +19,7 @@ export async function GET(request: NextRequest) {
         { error: "Invalid token" },
         { status: 401 }
       );
-      response.cookies.set("auth_token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 0,
-        path: "/",
-      });
+      response.cookies.set("auth_token", "", getExpiredAuthCookieOptions());
       return response;
     }
 
@@ -45,13 +40,7 @@ export async function GET(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
-    response.cookies.set("auth_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 0,
-      path: "/",
-    });
+    response.cookies.set("auth_token", "", getExpiredAuthCookieOptions());
     return response;
   }
 }

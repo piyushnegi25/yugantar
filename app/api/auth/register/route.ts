@@ -5,14 +5,39 @@ import {
   hashPassword,
   createJWT,
 } from "@/lib/auth";
+import { getAuthCookieOptions } from "@/lib/security/cookies";
+import {
+  isValidEmail,
+  sanitizeEmail,
+  sanitizeName,
+} from "@/lib/security/validation";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, name } = await request.json();
-    const normalizedEmail = String(email || "")
-      .trim()
-      .toLowerCase();
-    const normalizedName = String(name || "").trim();
+    const normalizedEmail = sanitizeEmail(email);
+    const normalizedName = sanitizeName(name);
+
+    const clientIp =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+    const rateLimit = checkRateLimit(`auth:register:${clientIp}`, {
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": `${Math.ceil((rateLimit.resetAt - Date.now()) / 1000)}`,
+          },
+        }
+      );
+    }
 
     if (!normalizedEmail || !password || !normalizedName) {
       return NextResponse.json(
@@ -21,9 +46,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password.length < 6) {
+    if (!isValidEmail(normalizedEmail)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters long" },
+        { error: "Password must be at least 8 characters long" },
         { status: 400 }
       );
     }
@@ -63,12 +92,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Set HTTP-only cookie
-    response.cookies.set("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    });
+    response.cookies.set("auth_token", token, getAuthCookieOptions());
 
     return response;
   } catch (error) {

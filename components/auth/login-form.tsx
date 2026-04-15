@@ -13,6 +13,7 @@ import { Eye, EyeOff, Mail, Lock, Chrome, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getGoogleOAuthURL } from "@/lib/google-oauth";
+import { sanitizeCallbackUrl } from "@/lib/security/validation";
 
 interface LoginFormProps {
   onToggleForm: () => void;
@@ -30,7 +31,9 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // Determine callbackUrl: use ?callbackUrl=... if present, else current path
-  const callbackUrl = searchParams.get("callbackUrl") || pathname;
+  const callbackUrl = sanitizeCallbackUrl(
+    searchParams.get("callbackUrl") || pathname
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

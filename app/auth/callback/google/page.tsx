@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { sanitizeCallbackUrl } from "@/lib/security/validation";
 
 function GoogleCallbackContent() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -32,8 +33,10 @@ function GoogleCallbackContent() {
           setStatus("success");
           setMessage("Authentication successful! Loading your profile...");
 
-          // Get the intended callback URL
-          const intendedCallbackUrl = searchParams.get("callbackUrl") || "/";
+              // Get the intended callback URL
+              const intendedCallbackUrl = sanitizeCallbackUrl(
+                searchParams.get("callbackUrl") || "/"
+              );
 
           // Fetch user data and populate localStorage
           try {
