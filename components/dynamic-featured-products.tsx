@@ -14,8 +14,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { AddToCart } from "@/components/add-to-cart";
 import { getTotalStock, normalizeStock } from "@/lib/stock-normalization";
+import { ProductCardActions } from "@/components/product-card-actions";
 
 interface ApiProduct {
   _id: string;
@@ -205,9 +205,11 @@ export function DynamicFeaturedProducts() {
                     </div>
 
                     <div className="flex flex-1 flex-col p-4">
-                      <h3 className="mb-2 line-clamp-1 text-lg font-semibold transition-colors group-hover:text-blue-600">
-                        {product.name}
-                      </h3>
+                      <Link href={`/products/${product.slug}`}>
+                        <h3 className="mb-2 line-clamp-1 text-lg font-semibold transition-colors group-hover:text-blue-600">
+                          {product.name}
+                        </h3>
+                      </Link>
                       <p className="mb-3 flex-grow text-sm text-muted-foreground line-clamp-2">
                         {product.description}
                       </p>
@@ -277,28 +279,10 @@ export function DynamicFeaturedProducts() {
                       </div>
 
                       <div className="mt-auto">
-                        <AddToCart
-                          key={`${product._id}-${selectedSizes[product._id]}`}
-                          productId={product._id}
-                          name={product.name}
-                          price={product.price}
-                          image={product.images[0] || "/placeholder.svg"}
-                          sizes={product.sizes}
-                          defaultSize={
-                            selectedSizes[product._id] || product.sizes[0]
-                          }
-                          defaultColor="Black"
-                          colors={
-                            product.category.includes("custom")
-                              ? product.colors
-                              : ["Black"]
-                          }
-                          stock={normalizedStock}
-                          category={product.category.join(", ")}
-                          variant="default"
-                          size="sm"
-                          className="w-full"
-                          compact={true}
+                        <ProductCardActions
+                          product={product}
+                          selectedSize={selectedSizes[product._id]}
+                          normalizedStock={normalizedStock}
                         />
 
                         {totalStock <= 5 && totalStock > 0 && (

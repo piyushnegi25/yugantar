@@ -14,13 +14,13 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { AddToCart } from "@/components/add-to-cart";
 import { CartBadge } from "@/components/cart-badge";
 import { CategoryFilterChips } from "@/components/category-filter-chips";
 import { normalizeStock, getTotalStock } from "@/lib/stock-normalization";
 import { CategoryHeroBanner } from "@/components/category-hero-banner";
 import { DynamicNavbar } from "@/components/dynamic-navbar";
 import { UserMenu } from "@/components/auth/user-menu";
+import { ProductCardActions } from "@/components/product-card-actions";
 
 interface Product {
   _id: string;
@@ -331,9 +331,11 @@ export default function MemePage() {
                       )}
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
-                        {product.name}
-                      </h3>
+                      <Link href={`/products/${product.slug}`}>
+                        <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+                          {product.name}
+                        </h3>
+                      </Link>
                       <p className="text-gray-600  text-sm mb-3 line-clamp-2 flex-grow">
                         {product.description}
                       </p>
@@ -408,28 +410,10 @@ export default function MemePage() {
 
                       {/* Add to Cart Section */}
                       <div className="mt-auto">
-                        <AddToCart
-                          key={`${product._id}-${selectedSizes[product._id]}`}
-                          productId={product._id}
-                          name={product.name}
-                          price={product.price}
-                          image={product.images[0] || "/placeholder.svg"}
-                          sizes={product.sizes}
-                          defaultSize={
-                            selectedSizes[product._id] || product.sizes[0]
-                          }
-                          defaultColor="Black"
-                          colors={
-                            product.category.includes("custom")
-                              ? product.colors
-                              : ["Black"]
-                          }
-                          stock={normalizeStock(product.stock, product.sizes)}
-                          category={product.category.join(", ")}
-                          variant="default"
-                          size="sm"
-                          className="w-full"
-                          compact={true}
+                        <ProductCardActions
+                          product={product}
+                          selectedSize={selectedSizes[product._id]}
+                          normalizedStock={normalizeStock(product.stock, product.sizes)}
                         />
 
                         {/* Stock Information */}
