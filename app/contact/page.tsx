@@ -21,7 +21,7 @@ import {
   Twitter,
 } from "lucide-react";
 
-const SUPPORT_EMAIL = "support@stylesage.com";
+const SUPPORT_EMAIL = "support@yugantar.studio";
 
 export const metadata: Metadata = createMetadata({
   title: "Contact Yugantar - T-Shirt Support India",
@@ -327,7 +327,7 @@ export default function ContactPage() {
                 <CardContent>
                   <div className="flex gap-4">
                     <a
-                      href="https://www.instagram.com/stylesage"
+                      href="https://www.instagram.com/yugantar.studio"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity"
@@ -335,7 +335,7 @@ export default function ContactPage() {
                       <Instagram className="w-5 h-5" />
                     </a>
                     <a
-                      href="https://www.facebook.com/stylesage"
+                      href="https://www.facebook.com/yugantar.studio"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -343,7 +343,7 @@ export default function ContactPage() {
                       <Facebook className="w-5 h-5" />
                     </a>
                     <a
-                      href="https://twitter.com/stylesage"
+                      href="https://twitter.com/yugantarstudio"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"

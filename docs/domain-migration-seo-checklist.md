@@ -1,11 +1,11 @@
-# Domain Migration SEO Checklist (StyleSage -> Yugantar)
+# Domain Migration SEO Checklist (stylesage.me -> yugantar.studio)
 
-Use this checklist when you switch from `stylesage` to `yugantar`.
+Use this checklist when you switch from `stylesage.me` to `yugantar.studio`.
 
 ## 1) Before Launch
 - Add the new domain in hosting and SSL setup.
 - Set `NEXT_PUBLIC_APP_URL` to the new canonical domain.
-- Optionally set `NEXT_PUBLIC_FUTURE_DOMAIN` for reference.
+- Optionally set `NEXT_PUBLIC_OLD_APP_URL` for historical reference.
 - Keep page paths and content structure stable during migration.
 
 ## 2) Redirects

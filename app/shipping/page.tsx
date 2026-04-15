@@ -88,7 +88,7 @@ export default function ShippingPage() {
           <article className="rounded-lg border border-gray-200 p-5">
             <h2 className="text-xl font-semibold text-gray-900">Support</h2>
             <p className="mt-2 text-gray-700">
-              If your parcel is delayed, contact support@stylesage.com with your
+              If your parcel is delayed, contact support@yugantar.studio with your
               order details for quick help.
             </p>
           </article>

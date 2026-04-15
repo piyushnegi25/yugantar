@@ -1,4 +1,4 @@
-# StyleSage - T-Shirt E-commerce Platform
+# Yugantar - T-Shirt E-commerce Platform
 
 A modern, full-stack e-commerce platform for custom t-shirts built with Next.js, TypeScript, and MongoDB.
 
@@ -86,7 +86,8 @@ MONGODB_URI=your_mongodb_connection_string
 
 # Authentication
 JWT_SECRET=your_jwt_secret
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=https://yugantar.studio
+NEXT_PUBLIC_OLD_APP_URL=https://www.stylesage.me
 
 # Google OAuth
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
@@ -103,8 +104,8 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/ManasBhaintwal/StyleSage.git
-   cd StyleSage
+git clone https://github.com/Manas-bh/yugantar.git
+cd yugantar
    ```
 
 2. **Install dependencies**
@@ -196,4 +197,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Manas Bhaintwal - [GitHub](https://github.com/ManasBhaintwal)
 
-Project Link: [https://github.com/ManasBhaintwal/StyleSage](https://github.com/ManasBhaintwal/StyleSage)
+Project Link: [https://github.com/Manas-bh/yugantar](https://github.com/Manas-bh/yugantar)

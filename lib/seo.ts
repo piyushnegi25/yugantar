@@ -5,13 +5,13 @@ export const siteConfig = {
   name: "Yugantar",
   description:
     "Buy premium t-shirts online in India with anime, meme, streetwear, and custom designs. Fast shipping, quality fabric, and inclusive sizing.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.stylesage.me",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio",
   siteName: "Yugantar - Premium T-Shirts India",
-  creator: "@StyleSageOfficial",
+  creator: "@yugantarstudio",
   authors: [
     {
       name: "Manas Bhaintwal",
-      url: "https://github.com/ManasBhaintwal",
+      url: "https://github.com/Manas-bh",
     },
   ],
   keywords: [
@@ -51,7 +51,7 @@ export const siteConfig = {
   ],
   category: "E-commerce",
   phone: "+91-1234567890",
-  email: "support@stylesage.com",
+  email: "support@yugantar.studio",
   address: {
     street: "Sector 62",
     city: "Noida",
@@ -60,11 +60,11 @@ export const siteConfig = {
     country: "India",
   },
   social: {
-    instagram: "https://www.instagram.com/stylesage",
-    facebook: "https://www.facebook.com/stylesage",
-    twitter: "https://twitter.com/stylesage",
-    youtube: "https://www.youtube.com/@stylesage",
-    pinterest: "https://pinterest.com/stylesage",
+    instagram: "https://www.instagram.com/yugantar.studio",
+    facebook: "https://www.facebook.com/yugantar.studio",
+    twitter: "https://twitter.com/yugantarstudio",
+    youtube: "https://www.youtube.com/@yugantarstudio",
+    pinterest: "https://pinterest.com/yugantarstudio",
   },
   businessHours: "Mon-Sun 9:00 AM - 9:00 PM IST",
   priceRange: "₹₹",
@@ -79,8 +79,9 @@ export const siteConfig = {
 };
 
 export const domainMigrationConfig = {
-  oldDomain: process.env.NEXT_PUBLIC_APP_URL || "https://www.stylesage.me",
-  newDomain: process.env.NEXT_PUBLIC_FUTURE_DOMAIN || "https://www.yugantar.com",
+  oldDomain:
+    process.env.NEXT_PUBLIC_OLD_APP_URL || "https://www.stylesage.me",
+  newDomain: process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio",
 };
 
 export function absoluteUrl(path: string = "") {
@@ -113,11 +114,11 @@ export function generateProductStructuredData(product: {
     category: product.category.join(", "),
     brand: {
       "@type": "Brand",
-      name: "StyleSage",
+      name: "Yugantar",
     },
     manufacturer: {
       "@type": "Organization",
-      name: "StyleSage",
+      name: "Yugantar",
     },
     offers: {
       "@type": "Offer",
@@ -130,7 +131,7 @@ export function generateProductStructuredData(product: {
       availability: "https://schema.org/InStock",
       seller: {
         "@type": "Organization",
-        name: "StyleSage",
+        name: "Yugantar",
       },
       ...(product.originalPrice && {
         priceSpecification: {

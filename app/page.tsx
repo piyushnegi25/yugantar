@@ -91,11 +91,15 @@ export default function Home() {
         <HomeFeatureBanner />
       </main>
 
-      <footer className="border-t border-border mt-24 bg-background py-16">
+      <footer className="border-t border-border mt-24 bg-background py-12 sm:py-16">
         <div className="container max-w-screen-2xl mx-auto flex flex-col items-center text-center">
-          <h3 className="text-4xl font-black uppercase tracking-tighter mb-4 text-foreground">YUGANTAR</h3>
-          <p className="text-muted-foreground uppercase tracking-widest text-sm mb-10">Till End of the Era.</p>
-          <div className="flex gap-8 mb-10 text-sm font-medium text-muted-foreground">
+          <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-foreground">
+            YUGANTAR
+          </h3>
+          <p className="text-muted-foreground uppercase tracking-widest text-xs sm:text-sm mb-8 sm:mb-10">
+            Till End of the Era.
+          </p>
+          <div className="grid grid-cols-2 justify-center gap-x-4 gap-y-3 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 mb-8 sm:mb-10 text-sm font-medium text-muted-foreground w-full max-w-[360px] sm:max-w-none">
             <Link href="/about" className="hover:text-primary transition-colors">About</Link>
             <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
             <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
@@ -108,7 +112,9 @@ export default function Home() {
             <Link href="/streetwear-tshirts-india" className="hover:text-primary transition-colors">Streetwear</Link>
             <Link href="/funny-meme-tshirts-india" className="hover:text-primary transition-colors">Funny Memes</Link>
           </div>
-          <p className="text-xs text-muted-foreground/50">&copy; {new Date().getFullYear()} YUGANTAR. All rights reserved.</p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground/60 px-4">
+            &copy; {new Date().getFullYear()} YUGANTAR. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

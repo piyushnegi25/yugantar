@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 
-const SUPPORT_EMAIL = "support@stylesage.com";
+const SUPPORT_EMAIL = "support@yugantar.studio";
 
 export const metadata: Metadata = createMetadata({
   title: "FAQ - T-Shirt Sizes, Shipping, Returns, Payments",
