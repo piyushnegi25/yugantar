@@ -2,29 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
-import { getUserFromToken } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/security/auth-guards";
+import {
+  normalizeStringList,
+  parsePrice,
+  sanitizeName,
+  validateImageUrls,
+} from "@/lib/security/validation";
+import { validateImageFiles } from "@/lib/security/upload";
 
 export const dynamic = "force-dynamic";
 
 // Auth check function
 async function checkAdminAuth(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
-  if (!token) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
-
-  const user = await getUserFromToken(token);
-  if (!user || user.role !== "admin") {
-    return NextResponse.json(
-      { error: "Admin access required" },
-      { status: 403 }
-    );
-  }
-
-  return user;
+  const auth = await requireAdminUser(request);
+  return auth.error || auth.user;
 }
 
 // Utility function to convert string to slug
@@ -74,28 +66,16 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
 
     // Extract form fields
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const price = parseFloat(formData.get("price") as string);
+    const name = sanitizeName(formData.get("name"));
+    const description = String(formData.get("description") || "").trim();
+    const price = parsePrice(formData.get("price"));
     const originalPrice = formData.get("originalPrice")
-      ? parseFloat(formData.get("originalPrice") as string)
+      ? parsePrice(formData.get("originalPrice"))
       : undefined;
-    const category = ((formData.get("category") as string) || "")
-      .split(",")
-      .map((cat) => cat.trim())
-      .filter(Boolean);
-    const tags = ((formData.get("tags") as string) || "")
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-    const sizes = ((formData.get("sizes") as string) || "")
-      .split(",")
-      .map((size) => size.trim())
-      .filter(Boolean);
-    const colors = ((formData.get("colors") as string) || "")
-      .split(",")
-      .map((color) => color.trim())
-      .filter(Boolean);
+    const category = normalizeStringList(formData.get("category"));
+    const tags = normalizeStringList(formData.get("tags"));
+    const sizes = normalizeStringList(formData.get("sizes"));
+    const colors = normalizeStringList(formData.get("colors"));
 
     // Parse sizeStock from JSON string
     const sizeStockString = formData.get("sizeStock") as string;
@@ -120,6 +100,7 @@ export async function POST(request: NextRequest) {
     });
 
     const isFeatured = formData.get("isFeatured") === "true";
+    const hostedImageUrls = normalizeStringList(formData.get("imageUrls"));
 
     if (
       originalPrice !== undefined &&
@@ -130,21 +111,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("POST request data:", {
-      name,
-      description,
-      price,
-      originalPrice,
-      category,
-      tags,
-      sizes,
-      colors,
-      stock,
-      isFeatured,
-    });
-
-    console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
 
     // Validate required fields
     if (
@@ -179,19 +145,31 @@ export async function POST(request: NextRequest) {
       (file) => file && file.size > 0
     );
 
-    if (validImageFiles.length === 0) {
+    const imageValidation = validateImageFiles(validImageFiles);
+    if (!imageValidation.valid) {
       return NextResponse.json(
-        { error: "At least one image is required" },
+        { error: imageValidation.error || "Invalid images" },
         { status: 400 }
       );
     }
 
     const imageUrls: string[] = [];
 
-    for (const file of validImageFiles) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const result = (await uploadImage(buffer, "tshirt-products")) as any;
-      imageUrls.push(result.secure_url);
+    if (hostedImageUrls.length > 0) {
+      if (!validateImageUrls(hostedImageUrls)) {
+        return NextResponse.json(
+          { error: "Invalid hosted image URLs" },
+          { status: 400 }
+        );
+      }
+
+      imageUrls.push(...hostedImageUrls);
+    } else {
+      for (const file of validImageFiles) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const result = (await uploadImage(buffer, "tshirt-products")) as any;
+        imageUrls.push(result.secure_url);
+      }
     }
 
     // Create product
@@ -244,28 +222,16 @@ export async function PUT(request: NextRequest) {
 
     // Extract form fields
     const productId = formData.get("productId") as string;
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const price = parseFloat(formData.get("price") as string);
+    const name = sanitizeName(formData.get("name"));
+    const description = String(formData.get("description") || "").trim();
+    const price = parsePrice(formData.get("price"));
     const originalPrice = formData.get("originalPrice")
-      ? parseFloat(formData.get("originalPrice") as string)
+      ? parsePrice(formData.get("originalPrice"))
       : undefined;
-    const category = ((formData.get("category") as string) || "")
-      .split(",")
-      .map((cat) => cat.trim())
-      .filter(Boolean);
-    const tags = ((formData.get("tags") as string) || "")
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-    const sizes = ((formData.get("sizes") as string) || "")
-      .split(",")
-      .map((size) => size.trim())
-      .filter(Boolean);
-    const colors = ((formData.get("colors") as string) || "")
-      .split(",")
-      .map((color) => color.trim())
-      .filter(Boolean);
+    const category = normalizeStringList(formData.get("category"));
+    const tags = normalizeStringList(formData.get("tags"));
+    const sizes = normalizeStringList(formData.get("sizes"));
+    const colors = normalizeStringList(formData.get("colors"));
 
     // Parse sizeStock from JSON string for PUT request
     const sizeStockString = formData.get("sizeStock") as string;
@@ -292,6 +258,7 @@ export async function PUT(request: NextRequest) {
     const isFeatured = formData.get("isFeatured") === "true";
     const isActive = formData.get("isActive") === "true";
     const keepExistingImages = formData.get("keepExistingImages") === "true";
+    const hostedImageUrls = normalizeStringList(formData.get("imageUrls"));
 
     if (
       originalPrice !== undefined &&
@@ -302,25 +269,6 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("PUT request data:", {
-      productId,
-      name,
-      description,
-      price,
-      originalPrice,
-      category,
-      tags,
-      sizes,
-      colors,
-      stock,
-      isFeatured,
-      isActive,
-      keepExistingImages,
-      hasNewImages: formData.getAll("newImages").length > 0,
-    });
-
-    console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
 
     // Validate required fields
     if (
@@ -379,16 +327,28 @@ export async function PUT(request: NextRequest) {
         (file) => file && file.size > 0
       );
 
-      if (validNewImageFiles.length > 0) {
-        console.log(
-          "Updating images, deleting old ones and uploading new ones"
+      const imageValidation = validateImageFiles(validNewImageFiles);
+      if (!imageValidation.valid && hostedImageUrls.length === 0) {
+        return NextResponse.json(
+          { error: imageValidation.error || "Invalid images" },
+          { status: 400 }
         );
+      }
 
+      if (hostedImageUrls.length > 0) {
+        if (!validateImageUrls(hostedImageUrls)) {
+          return NextResponse.json(
+            { error: "Invalid hosted image URLs" },
+            { status: 400 }
+          );
+        }
+
+        imageUrls = hostedImageUrls;
+      } else if (validNewImageFiles.length > 0) {
         // Delete old images from Cloudinary
         for (const oldImageUrl of existingProduct.images) {
           try {
             const publicId = getPublicIdFromUrl(oldImageUrl);
-            console.log("Deleting image with public ID:", publicId);
             await deleteImage(publicId);
           } catch (error) {
             console.warn("Failed to delete old image:", error);
@@ -403,6 +363,15 @@ export async function PUT(request: NextRequest) {
           imageUrls.push(result.secure_url);
         }
       }
+    } else if (hostedImageUrls.length > 0) {
+      if (!validateImageUrls(hostedImageUrls)) {
+        return NextResponse.json(
+          { error: "Invalid hosted image URLs" },
+          { status: 400 }
+        );
+      }
+
+      imageUrls = hostedImageUrls;
     }
 
     // Update product
@@ -429,8 +398,6 @@ export async function PUT(request: NextRequest) {
     if (!updatedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-
-    console.log("Product updated successfully:", updatedProduct._id);
 
     return NextResponse.json(
       { message: "Product updated successfully", product: updatedProduct },

@@ -64,6 +64,7 @@ interface ProductFormData {
   sizes: string;
   // colors: string; // removed from form
   sizeStock: { [size: string]: string };
+  imageUrls: string;
   isFeatured: boolean;
   isActive: boolean;
 }
@@ -90,6 +91,7 @@ export default function AdminProductsPage() {
     sizes: "XS,S,M,L,XL,XXL",
     // colors: "Black,White,Navy", // removed from form
     sizeStock: { XS: "10", S: "10", M: "10", L: "10", XL: "10", XXL: "10" },
+    imageUrls: "",
     isFeatured: false,
     isActive: true,
   });
@@ -212,6 +214,7 @@ export default function AdminProductsPage() {
       sizes: "XS,S,M,L,XL,XXL",
       // colors: "Black,White,Navy", // removed from form
       sizeStock: { XS: "10", S: "10", M: "10", L: "10", XL: "10", XXL: "10" },
+      imageUrls: "",
       isFeatured: false,
       isActive: true,
     });
@@ -236,6 +239,7 @@ export default function AdminProductsPage() {
         acc[size] = (product.stock[size] || 0).toString();
         return acc;
       }, {} as { [size: string]: string }),
+      imageUrls: product.images.join(", "),
       isFeatured: product.isFeatured,
       isActive: product.isActive,
     });
@@ -293,6 +297,7 @@ export default function AdminProductsPage() {
       submitData.append("sizes", formData.sizes);
       // submitData.append("colors", formData.colors); // removed from form
       submitData.append("sizeStock", JSON.stringify(formData.sizeStock));
+      submitData.append("imageUrls", formData.imageUrls);
       submitData.append("isFeatured", formData.isFeatured.toString());
 
       if (editingProduct) {
@@ -631,6 +636,25 @@ export default function AdminProductsPage() {
                     onChange={(e) => handleInputChange("tags", e.target.value)}
                     placeholder="anime, naruto, bestseller"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="imageUrls">
+                    Product Image URLs (comma separated)
+                  </Label>
+                  <Textarea
+                    id="imageUrls"
+                    value={formData.imageUrls}
+                    onChange={(e) =>
+                      handleInputChange("imageUrls", e.target.value)
+                    }
+                    placeholder="https://...image1.jpg, https://...image2.jpg"
+                    rows={3}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional. Use this for multiple hosted images. Uploaded files
+                    will still work as before.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
