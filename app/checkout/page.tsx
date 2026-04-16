@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
@@ -28,6 +27,17 @@ interface AddressForm {
   phone: string;
 }
 
+type AddressFieldErrors = Partial<Record<keyof AddressForm, string>>;
+
+interface PinLookupResponse {
+  Status: string;
+  PostOffice?: Array<{
+    Name: string;
+    District: string;
+    State: string;
+  }>;
+}
+
 interface AuthUser {
   id: string;
   email?: string;
@@ -40,6 +50,10 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [errors, setErrors] = useState<AddressFieldErrors>({});
+  const [district, setDistrict] = useState("");
+  const [isPinLookupLoading, setIsPinLookupLoading] = useState(false);
+  const [pinLookupMessage, setPinLookupMessage] = useState("");
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: "",
@@ -120,22 +134,127 @@ export default function CheckoutPage() {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
+    let { value } = e.target;
+
+    if (name === "pinCode" || name === "phone") {
+      value = value.replace(/\D/g, "");
+    }
+
     setAddress((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+
+    if (name === "pinCode") {
+      setPinLookupMessage("");
+      setDistrict("");
+    }
+  };
+
+  useEffect(() => {
+    const pinCode = address.pinCode.trim();
+
+    if (pinCode.length !== 6) {
+      setIsPinLookupLoading(false);
+      return;
+    }
+
+    if (!/^\d{6}$/.test(pinCode)) {
+      setPinLookupMessage("PIN code must be exactly 6 digits");
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchPinDetails = async () => {
+      setIsPinLookupLoading(true);
+      setPinLookupMessage("");
+
+      try {
+        const response = await fetch(
+          `https://api.postalpincode.in/pincode/${pinCode}`
+        );
+        const data = (await response.json()) as PinLookupResponse[];
+        const result = Array.isArray(data) ? data[0] : null;
+        const postOffice = result?.PostOffice?.[0];
+
+        if (!postOffice || result?.Status !== "Success") {
+          if (!cancelled) {
+            setPinLookupMessage("Could not auto-fetch city/state for this PIN code");
+          }
+          return;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setAddress((prev) => ({
+          ...prev,
+          city: postOffice.Name || prev.city,
+          state: postOffice.State || prev.state,
+        }));
+        setDistrict(postOffice.District || "");
+        setPinLookupMessage("City/state auto-filled from PIN code");
+      } catch {
+        if (!cancelled) {
+          setPinLookupMessage("Unable to fetch location from PIN code right now");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsPinLookupLoading(false);
+        }
+      }
+    };
+
+    fetchPinDetails();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address.pinCode]);
+
+  const getAddressErrors = (): AddressFieldErrors => {
+    const nextErrors: AddressFieldErrors = {};
+
+    if (!address.fullName.trim()) {
+      nextErrors.fullName = "Full name is required";
+    }
+
+    if (!address.addressLine1.trim()) {
+      nextErrors.addressLine1 = "Address line 1 is required";
+    }
+
+    if (!address.city.trim()) {
+      nextErrors.city = "City is required";
+    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(address.city.trim())) {
+      nextErrors.city = "Enter a valid city name";
+    }
+
+    if (!address.state.trim()) {
+      nextErrors.state = "State is required";
+    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(address.state.trim())) {
+      nextErrors.state = "Enter a valid state name";
+    }
+
+    if (!address.pinCode.trim()) {
+      nextErrors.pinCode = "PIN code is required";
+    } else if (!/^\d{6}$/.test(address.pinCode.trim())) {
+      nextErrors.pinCode = "PIN code must be exactly 6 digits";
+    }
+
+    if (!address.phone.trim()) {
+      nextErrors.phone = "Phone number is required";
+    } else if (!/^[6-9]\d{9}$/.test(address.phone.trim())) {
+      nextErrors.phone = "Enter a valid 10-digit Indian mobile number";
+    }
+
+    return nextErrors;
   };
 
   const validateAddress = () => {
-    const required = [
-      "fullName",
-      "addressLine1",
-      "city",
-      "state",
-      "pinCode",
-      "phone",
-    ];
-    return required.every(
-      (field) => address[field as keyof AddressForm].trim() !== ""
-    );
+    const nextErrors = getAddressErrors();
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
   const handlePayment = async () => {
@@ -318,27 +437,33 @@ export default function CheckoutPage() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="fullName">Full Name *</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  value={address.fullName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    value={address.fullName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                  {errors.fullName ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>
+                  ) : null}
+                </div>
 
               <div>
                 <Label htmlFor="addressLine1">Address Line 1 *</Label>
-                <Input
-                  id="addressLine1"
-                  name="addressLine1"
-                  value={address.addressLine1}
-                  onChange={handleInputChange}
-                  placeholder="House number, street name"
-                  required
-                />
-              </div>
+                  <Input
+                    id="addressLine1"
+                    name="addressLine1"
+                    value={address.addressLine1}
+                    onChange={handleInputChange}
+                    placeholder="House number, street name"
+                    required
+                  />
+                  {errors.addressLine1 ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.addressLine1}</p>
+                  ) : null}
+                </div>
 
               <div>
                 <Label htmlFor="addressLine2">Address Line 2</Label>
@@ -362,6 +487,9 @@ export default function CheckoutPage() {
                     placeholder="City"
                     required
                   />
+                  {errors.city ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.city}</p>
+                  ) : null}
                 </div>
                 <div>
                   <Label htmlFor="state">State *</Label>
@@ -373,6 +501,9 @@ export default function CheckoutPage() {
                     placeholder="State"
                     required
                   />
+                  {errors.state ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.state}</p>
+                  ) : null}
                 </div>
               </div>
 
@@ -385,8 +516,13 @@ export default function CheckoutPage() {
                     value={address.pinCode}
                     onChange={handleInputChange}
                     placeholder="PIN Code"
+                    inputMode="numeric"
+                    maxLength={6}
                     required
                   />
+                  {errors.pinCode ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.pinCode}</p>
+                  ) : null}
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number *</Label>
@@ -396,8 +532,32 @@ export default function CheckoutPage() {
                     value={address.phone}
                     onChange={handleInputChange}
                     placeholder="Phone number"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
                   />
+                  {errors.phone ? (
+                    <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="district">District</Label>
+                  <Input
+                    id="district"
+                    value={district}
+                    placeholder="Auto-filled from PIN code"
+                    readOnly
+                  />
+                </div>
+                <div className="flex items-end">
+                  <p className="text-xs text-gray-500">
+                    {isPinLookupLoading
+                      ? "Fetching location from PIN code..."
+                      : pinLookupMessage}
+                  </p>
                 </div>
               </div>
             </CardContent>
