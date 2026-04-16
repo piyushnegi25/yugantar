@@ -87,7 +87,10 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
   // Always include 'collections' category, even if not active or missing
   let activeCategories = categories
     .filter(
-      (cat) => navbarConfig.categories.includes(cat.id) && cat.id !== "custom"
+      (cat) =>
+        navbarConfig.categories.includes(cat.id) &&
+        cat.id !== "custom" &&
+        cat.slug !== "custom"
     )
     .sort((a, b) => a.order - b.order);
 
@@ -108,7 +111,9 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
     ];
   }
 
-  const activeLinks = navbarConfig.customLinks.filter((link) => link.isActive);
+  const activeLinks = navbarConfig.customLinks.filter(
+    (link) => link.isActive && !/^\/custom(\/|$)/.test(link.href)
+  );
 
   const navLinks = [
     ...activeCategories.map((cat) => ({
@@ -120,7 +125,6 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
 
   return (
     <>
-      {/* Desktop Navbar */}
       <nav className="hidden md:flex space-x-8">
         {activeCategories.map((category) => (
           <Link
@@ -128,7 +132,7 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
             href={`/${category.slug}`}
             className={`transition-colors ${
               currentPath === `/${category.slug}`
-                ? "text-gray-900  font-medium border-b-2 border-blue-500"
+                ? "text-gray-900  font-medium border-b-2 border-primary"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -142,7 +146,7 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
             href={link.href}
             className={`transition-colors ${
               currentPath === link.href
-                ? "text-gray-900  font-medium border-b-2 border-purple-500"
+                ? "text-gray-900  font-medium border-b-2 border-primary"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -151,7 +155,6 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
         ))}
       </nav>
 
-      {/* Mobile Navbar */}
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
@@ -173,7 +176,7 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
                       href={link.href}
                       className={`text-lg ${
                         currentPath === link.href
-                          ? "text-blue-600  font-medium"
+                          ? "text-primary  font-medium"
                           : "text-gray-600 hover:text-gray-900"
                       }`}
                     >

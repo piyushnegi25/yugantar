@@ -41,6 +41,36 @@ export interface NavbarConfig {
   updatedAt: Date;
 }
 
+const DEFAULT_NAVBAR_CATEGORIES = ["collections", "anime", "meme"];
+
+function isCustomCategory(category: string): boolean {
+  return category === "custom";
+}
+
+function isCustomHref(href: string): boolean {
+  return /^\/custom(\/|$)/.test(href);
+}
+
+function normalizeNavbarConfig(config: NavbarConfig): NavbarConfig {
+  const categories = Array.isArray(config.categories)
+    ? config.categories.filter(
+        (category, index, allCategories) =>
+          !isCustomCategory(category) && allCategories.indexOf(category) === index
+      )
+    : [];
+
+  const customLinks = Array.isArray(config.customLinks)
+    ? config.customLinks.filter((link) => !isCustomHref(link?.href || ""))
+    : [];
+
+  return {
+    ...config,
+    categories:
+      categories.length > 0 ? categories : [...DEFAULT_NAVBAR_CATEGORIES],
+    customLinks,
+  };
+}
+
 function dispatchStorageUpdate(key: string, value: unknown): void {
   if (typeof window === "undefined") return;
 
@@ -134,13 +164,15 @@ export function saveProducts(products: Product[]): void {
 }
 
 export function getNavbarConfig(): NavbarConfig {
+  const defaultConfig: NavbarConfig = {
+    id: "default",
+    categories: [...DEFAULT_NAVBAR_CATEGORIES],
+    customLinks: [{ name: "About", href: "/about", isActive: true }],
+    updatedAt: new Date(),
+  };
+
   if (typeof window === "undefined") {
-    return {
-      id: "default",
-      categories: ["collections", "anime", "meme", "custom"],
-      customLinks: [{ name: "About", href: "/about", isActive: true }],
-      updatedAt: new Date(),
-    };
+    return defaultConfig;
   }
 
   const stored =
@@ -151,20 +183,26 @@ export function getNavbarConfig(): NavbarConfig {
     localStorage.setItem("stylesage_navbar", stored);
   }
 
-  return stored
-    ? JSON.parse(stored)
-    : {
-        id: "default",
-        categories: ["collections", "anime", "meme", "custom"],
-        customLinks: [{ name: "About", href: "/about", isActive: true }],
-        updatedAt: new Date(),
-      };
+  if (!stored) {
+    return defaultConfig;
+  }
+
+  const parsedConfig = JSON.parse(stored) as NavbarConfig;
+  const normalizedConfig = normalizeNavbarConfig(parsedConfig);
+
+  if (JSON.stringify(parsedConfig) !== JSON.stringify(normalizedConfig)) {
+    localStorage.setItem("stylesage_navbar", JSON.stringify(normalizedConfig));
+  }
+
+  return normalizedConfig;
 }
 
 export function saveNavbarConfig(config: NavbarConfig): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("stylesage_navbar", JSON.stringify(config));
-  dispatchStorageUpdate("stylesage_navbar", config);
+
+  const normalizedConfig = normalizeNavbarConfig(config);
+  localStorage.setItem("stylesage_navbar", JSON.stringify(normalizedConfig));
+  dispatchStorageUpdate("stylesage_navbar", normalizedConfig);
 }
 
 // CRUD operations

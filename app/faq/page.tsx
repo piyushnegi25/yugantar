@@ -12,8 +12,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { SiteHeader } from "@/components/site-header";
 import Link from "next/link";
-import { ArrowLeft, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 const SUPPORT_EMAIL = "support@yugantar.studio";
 
@@ -189,30 +190,20 @@ export default function FAQPage() {
         }}
       />
       <div className="min-h-screen bg-gray-50 ">
-        {/* Header */}
-        <div className="bg-white  border-b border-gray-200 ">
+        <SiteHeader currentPath="/faq" />
+
+        <div className="border-b border-gray-200 bg-white">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
-              </Link>
+            <div className="flex items-center gap-3 mb-2">
+              <HelpCircle className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900 ">
+                Frequently Asked Questions
+              </h1>
             </div>
-            <div className="mt-4">
-              <div className="flex items-center gap-3 mb-2">
-                <HelpCircle className="w-8 h-8 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900 ">
-                  Frequently Asked Questions
-                </h1>
-              </div>
-              <p className="text-gray-600  text-lg">
-                Find answers to common questions about Yugantar t-shirts,
-                orders, and policies.
-              </p>
-            </div>
+            <p className="text-gray-600  text-lg">
+              Find answers to common questions about Yugantar t-shirts, orders,
+              and policies.
+            </p>
           </div>
         </div>
 

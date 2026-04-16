@@ -36,8 +36,7 @@ import {
   Save,
   X,
 } from "lucide-react";
-import Link from "next/link";
-import { UserMenu } from "@/components/auth/user-menu";
+import { SiteHeader } from "@/components/site-header";
 import {
   getCategories,
   getProducts,
@@ -257,7 +256,15 @@ export default function AdminCatalogPage() {
     if (!navbarConfig) return;
 
     try {
-      saveNavbarConfig(navbarConfig);
+      saveNavbarConfig({
+        ...navbarConfig,
+        categories: navbarConfig.categories.filter(
+          (category) => category !== "custom"
+        ),
+        customLinks: navbarConfig.customLinks.filter(
+          (link) => !/^\/custom(\/|$)/.test(link.href)
+        ),
+      });
       alert("Navbar configuration updated successfully!");
     } catch (error) {
       console.error("Failed to update navbar:", error);
@@ -347,31 +354,15 @@ export default function AdminCatalogPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 ">
-      {/* Header */}
-      <header className="bg-white  border-b border-gray-200 ">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-2xl font-bold text-gray-900 "
-              >
-                Yugantar
-              </Link>
-              <Badge
-                variant="secondary"
-                className="bg-purple-100 text-purple-800  "
-              >
-                Catalog Management
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-4">
-              
-              <UserMenu />
-            </div>
-          </div>
+      <SiteHeader showCart={false} />
+
+      <div className="border-b border-gray-200 bg-white">
+        <div className="px-6 py-3">
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            Catalog Management
+          </Badge>
         </div>
-      </header>
+      </div>
 
       <div className="p-6">
         <div className="mb-6">
@@ -937,11 +928,13 @@ export default function AdminCatalogPage() {
                         Select which categories appear in the navbar
                       </p>
                       <div className="space-y-2">
-                        {categories.map((category) => (
-                          <div
-                            key={category.id}
-                            className="flex items-center space-x-2"
-                          >
+                          {categories
+                            .filter((category) => category.id !== "custom")
+                            .map((category) => (
+                            <div
+                              key={category.id}
+                              className="flex items-center space-x-2"
+                            >
                             <Switch
                               id={`navbar-${category.id}`}
                               checked={navbarConfig.categories.includes(
@@ -1037,6 +1030,9 @@ export default function AdminCatalogPage() {
                               }}
                               className="w-32"
                             />
+                            {/^\/custom(\/|$)/.test(link.href) ? (
+                              <Badge variant="destructive">Custom blocked</Badge>
+                            ) : null}
                             <Button
                               variant="ghost"
                               size="sm"

@@ -14,13 +14,11 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { CartBadge } from "@/components/cart-badge";
 import { CategoryFilterChips } from "@/components/category-filter-chips";
 import { normalizeStock, getTotalStock } from "@/lib/stock-normalization";
 import { CategoryHeroBanner } from "@/components/category-hero-banner";
-import { DynamicNavbar } from "@/components/dynamic-navbar";
-import { UserMenu } from "@/components/auth/user-menu";
 import { ProductCardActions } from "@/components/product-card-actions";
+import { SiteHeader } from "@/components/site-header";
 
 interface Product {
   _id: string;
@@ -219,24 +217,7 @@ export default function AnimePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 ">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white  border-b border-gray-200  shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-2xl font-bold text-gray-900 "
-            >
-              Yugantar
-            </Link>
-            <DynamicNavbar currentPath="/anime" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <UserMenu />
-            <CartBadge />
-          </div>
-        </div>
-      </header>
+      <SiteHeader currentPath="/anime" />
 
       <CategoryHeroBanner fallback={ANIME_HERO_FALLBACK} position="anime_hero" />
 

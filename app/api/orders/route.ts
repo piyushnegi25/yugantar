@@ -38,10 +38,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Admin gets all orders
       orders = await Order.find({}).sort({ createdAt: -1 }).exec();
     } else {
-      // User gets their own orders
       orders = await Order.find({ userId: auth.user._id.toString() })
         .sort({ createdAt: -1 })
         .exec();
@@ -104,7 +102,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatePayload: Record<string, unknown> = { orderStatus };
+    const setPayload: Record<string, unknown> = {
+      orderStatus,
+    };
+    const unsetPayload: Record<string, 1> = {};
     let stockRestored = false;
     let stockErrors: string[] = [];
 
@@ -135,11 +136,35 @@ export async function PUT(request: NextRequest) {
         }
       }
 
-      updatePayload.cancelReason = "Cancelled by admin";
-      updatePayload.cancelledAt = new Date();
+      setPayload.cancelReason = "Cancelled by admin";
+      setPayload.cancelledAt = new Date();
+    } else if (orderStatus !== "cancelled") {
+      unsetPayload.cancelReason = 1;
+      unsetPayload.cancelledAt = 1;
     }
 
-    const order = await Order.findOneAndUpdate({ orderId }, updatePayload, {
+    const query: Record<string, unknown> = {
+      orderId,
+    };
+
+    if (orderStatus === "cancelled") {
+      query.orderStatus = { $in: ["placed", "confirmed"] };
+    } else {
+      query.orderStatus = { $ne: "cancelled" };
+    }
+
+    const updateDoc: {
+      $set: Record<string, unknown>;
+      $unset?: Record<string, 1>;
+    } = {
+      $set: setPayload,
+    };
+
+    if (Object.keys(unsetPayload).length > 0) {
+      updateDoc.$unset = unsetPayload;
+    }
+
+    const order = await Order.findOneAndUpdate(query, updateDoc, {
       new: true,
     });
 

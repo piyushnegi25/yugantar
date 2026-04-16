@@ -68,7 +68,6 @@ const FALLBACK_HERO_SLIDES: HeroSlide[] = [
 export function HomeHeroCarousel() {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isInteracting, setIsInteracting] = useState(false);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(FALLBACK_HERO_SLIDES);
 
   const activeSlide = heroSlides[currentSlide] || heroSlides[0];
@@ -156,7 +155,7 @@ export function HomeHeroCarousel() {
   }, [api]);
 
   useEffect(() => {
-    if (!api || isInteracting) {
+    if (!api) {
       return;
     }
 
@@ -167,22 +166,10 @@ export function HomeHeroCarousel() {
     }, 5000);
 
     return () => clearInterval(autoPlay);
-  }, [api, isInteracting]);
-
-  const pauseAutoPlay = () => setIsInteracting(true);
-  const resumeAutoPlay = () => setIsInteracting(false);
+  }, [api]);
 
   return (
-    <section
-      className="relative h-[74vh] min-h-[420px] w-full overflow-hidden bg-muted sm:h-[80vh] md:h-[85vh]"
-      onMouseEnter={pauseAutoPlay}
-      onMouseLeave={resumeAutoPlay}
-      onTouchStart={pauseAutoPlay}
-      onTouchEnd={resumeAutoPlay}
-      onTouchCancel={resumeAutoPlay}
-      onFocusCapture={pauseAutoPlay}
-      onBlurCapture={resumeAutoPlay}
-    >
+    <section className="relative h-[74vh] min-h-[420px] w-full overflow-hidden bg-muted sm:h-[80vh] md:h-[85vh]">
       <Carousel
         key={heroSlides.length}
         setApi={setApi}

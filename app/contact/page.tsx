@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SiteHeader } from "@/components/site-header";
 import Link from "next/link";
 import {
-  ArrowLeft,
   Mail,
   Phone,
   MapPin,
@@ -94,29 +94,17 @@ export default function ContactPage() {
         }}
       />
       <div className="min-h-screen bg-gray-50 ">
-        {/* Header */}
-        <div className="bg-white  border-b border-gray-200 ">
+        <SiteHeader currentPath="/contact" />
+
+        <div className="border-b border-gray-200 bg-white">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
-              </Link>
+            <div className="flex items-center gap-3 mb-2">
+              <MessageCircle className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900 ">Contact Us</h1>
             </div>
-            <div className="mt-4">
-              <div className="flex items-center gap-3 mb-2">
-                <MessageCircle className="w-8 h-8 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900 ">
-                  Contact Us
-                </h1>
-              </div>
-              <p className="text-gray-600  text-lg">
-                We'd love to hear from you. Get in touch with our team.
-              </p>
-            </div>
+            <p className="text-gray-600  text-lg">
+              We'd love to hear from you. Get in touch with our team.
+            </p>
           </div>
         </div>
 

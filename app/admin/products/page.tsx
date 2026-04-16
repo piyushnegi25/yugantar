@@ -32,6 +32,7 @@ import {
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { getTotalStock, normalizeStock } from "@/lib/stock-normalization";
+import { SiteHeader } from "@/components/site-header";
 
 interface Product {
   _id: string;
@@ -446,8 +447,18 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50  p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader showCart={false} />
+
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-7xl px-6 py-3">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Product Management
+          </Badge>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl p-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900 ">
             Product Management

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 declare global {
   interface Window {
@@ -288,26 +289,21 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50  transition-colors">
-      {/* Header */}
-      <header className="bg-white  border-b border-gray-200  sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/cart"
-                className="flex items-center space-x-2 text-gray-600 transition-colors hover:text-gray-900"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Cart</span>
-              </Link>
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900 ">
-              Checkout
-            </h1>
-            
-          </div>
+      <SiteHeader />
+
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/cart"
+            className="flex items-center space-x-2 text-gray-600 transition-colors hover:text-gray-900"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back to Cart</span>
+          </Link>
+          <h1 className="text-xl font-semibold text-gray-900">Checkout</h1>
+          <div className="w-[120px]" aria-hidden="true" />
         </div>
-      </header>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

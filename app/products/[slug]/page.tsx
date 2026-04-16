@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddToCart } from "@/components/add-to-cart";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { normalizeStock } from "@/lib/stock-normalization";
 import { createMetadata } from "@/lib/seo";
 import { ProductImageGallery } from "@/components/product-image-gallery";
+import { SiteHeader } from "@/components/site-header";
+import { findProductBySlug } from "@/lib/data/products";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -20,12 +20,9 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  await connectDB();
-  const product = await Product.findOne({ slug, isActive: true })
-    .select("name description")
-    .lean();
+  const product = await findProductBySlug(slug);
 
-  if (!product) {
+  if (!product || !product.isActive) {
     return createMetadata({
       title: "Product Not Found",
       description: "Requested product is not available.",
@@ -44,10 +41,9 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  await connectDB();
-  const product = await Product.findOne({ slug, isActive: true }).lean();
+  const product = await findProductBySlug(slug);
 
-  if (!product) {
+  if (!product || !product.isActive) {
     notFound();
   }
 
@@ -60,6 +56,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <SiteHeader />
+
       <div className="container mx-auto px-4 py-8 sm:py-10">
         <nav className="mb-6 text-sm text-gray-600">
           <Link href="/" className="hover:text-gray-900">

@@ -10,8 +10,8 @@ import { Upload, X, Download, ShoppingCart, RotateCcw } from "lucide-react";
 import Image from "next/image";
 
 import Link from "next/link";
-import { DynamicNavbar } from "@/components/dynamic-navbar";
 import { AddToCart } from "@/components/add-to-cart";
+import { SiteHeader } from "@/components/site-header";
 
 export default function CustomPage() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -78,35 +78,20 @@ export default function CustomPage() {
 
   return (
     <div className="min-h-screen bg-gray-50  transition-colors">
-      {/* Header */}
-      <header className="border-b border-gray-200  bg-white ">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-2xl font-bold text-gray-900 "
-              >
-                Yugantar
-              </Link>
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800  "
-              >
-                Custom Designer
-              </Badge>
-            </div>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-          <div className="mt-4">
-            <DynamicNavbar />
-          </div>
+      <SiteHeader currentPath="/custom" />
+
+      <div className="border-b border-gray-200 bg-white">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Custom Designer
+          </Badge>
+          <Link href="/">
+            <Button variant="outline" size="sm">
+              Back to Home
+            </Button>
+          </Link>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">

@@ -4,11 +4,11 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SiteHeader } from "@/components/site-header";
 import {
   Calendar,
   Heart,
   MapPin,
-  ShoppingCart,
   Target,
   Users,
   Zap,
@@ -68,7 +68,7 @@ const values = [
 const teamMembers = [
   {
     name: "Piyush Negi",
-    role: "Co-Founder",
+    role: "Founderandceo",
     image: "/piyush.jpeg",
     description:
       "Visionary builder focused on creativity, culture, and making premium fashion feel more personal.",
@@ -103,7 +103,7 @@ export default function AboutPage() {
         {
           "@type": "Person",
           name: "Piyush Negi",
-          jobTitle: "Co-Founder",
+          jobTitle: "Founderandceo",
         },
       ],
       slogan: "Till End of the Era",
@@ -122,70 +122,7 @@ export default function AboutPage() {
       />
 
       <div className="min-h-screen bg-white transition-colors">
-        <header className="border-b border-gray-100 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div className="flex items-center space-x-8">
-                <Link href="/" className="text-2xl font-bold text-gray-900">
-                  Yugantar
-                </Link>
-                <nav className="hidden space-x-8 md:flex">
-                  <Link
-                    href="/collections"
-                    className="text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    Collections
-                  </Link>
-                  <Link
-                    href="/anime"
-                    className="text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    Anime
-                  </Link>
-                  <Link
-                    href="/meme"
-                    className="text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    Meme
-                  </Link>
-                  <Link
-                    href="/custom"
-                    className="text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    Custom
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="border-b-2 border-primary font-medium text-gray-900"
-                  >
-                    About
-                  </Link>
-                </nav>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <Link href="/auth">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-none uppercase font-bold tracking-wider text-gray-600 hover:text-gray-900"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/cart">
-                  <Button
-                    size="sm"
-                    className="rounded-none bg-gray-900 uppercase font-bold tracking-wider text-white hover:bg-gray-800"
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Cart
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </header>
+        <SiteHeader currentPath="/about" />
 
         <section className="bg-primary py-20 text-white">
           <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">

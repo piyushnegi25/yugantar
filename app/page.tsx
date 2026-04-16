@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { UserMenu } from "@/components/auth/user-menu";
 import { DynamicFeaturedProducts } from "@/components/dynamic-featured-products";
-import { CartBadge } from "@/components/cart-badge";
-import { DynamicNavbar } from "@/components/dynamic-navbar";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 import { HomeFeatureBanner } from "@/components/home-feature-banner";
+import { SiteHeader } from "@/components/site-header";
 import {
   absoluteUrl,
   createMetadata,
@@ -59,20 +56,7 @@ export default function Home() {
           __html: JSON.stringify(homePageStructuredData),
         }}
       />
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-2xl font-bold tracking-tighter uppercase">
-              YUGANTAR
-            </Link>
-            <DynamicNavbar />
-          </div>
-          <div className="flex items-center space-x-4">
-            <UserMenu />
-            <CartBadge />
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         {/* HERO SECTION */}

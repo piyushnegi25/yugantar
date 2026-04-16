@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
-import { CartBadge } from "@/components/cart-badge";
+import { SiteHeader } from "@/components/site-header";
 
 export default function CartPage() {
   const {
@@ -45,36 +45,22 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50  transition-colors">
-      {/* Header */}
-      <header className="border-b border-gray-200  bg-white ">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link
-                href="/"
-                className="text-2xl font-bold text-gray-900 "
-              >
-                Yugantar
-              </Link>
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800  "
-              >
-                Shopping Cart
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Continue Shopping</span>
-                  <span className="sm:hidden">Back</span>
-                </Button>
-              </Link>
-            </div>
-          </div>
+      <SiteHeader />
+
+      <div className="border-b border-gray-200 bg-white">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            Shopping Cart
+          </Badge>
+          <Link href="/">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Continue Shopping</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
+          </Link>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {items.length === 0 ? (

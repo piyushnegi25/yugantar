@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { XCircle, RefreshCw, ArrowLeft, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 function PaymentContent() {
   const router = useRouter();
@@ -35,22 +36,7 @@ function PaymentContent() {
 
   return (
     <div className="min-h-screen bg-gray-50  transition-colors">
-      {/* Header */}
-      <header className="bg-white  border-b border-gray-200 ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-xl font-bold text-gray-900 "
-              >
-                Yugantar
-              </Link>
-            </div>
-            
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Card className="bg-white  border-gray-200  text-center">
