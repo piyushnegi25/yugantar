@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { restoreStock } from "@/lib/stock-utils";
+import { getUserById } from "@/lib/auth";
 import {
   requireAdminUser,
   requireAuthenticatedUser,
 } from "@/lib/security/auth-guards";
+import { sendOrderStatusUpdateEmail } from "@/lib/email/order-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -173,6 +175,27 @@ export async function PUT(request: NextRequest) {
         { success: false, error: "Order not found" },
         { status: 404 }
       );
+    }
+
+    if (existingOrder.orderStatus !== orderStatus) {
+      try {
+        const orderOwner = await getUserById(String(existingOrder.userId || ""));
+
+        if (orderOwner?.email) {
+          await sendOrderStatusUpdateEmail({
+            orderId,
+            userEmail: orderOwner.email,
+            userName: orderOwner.name,
+            previousStatus: existingOrder.orderStatus,
+            nextStatus: orderStatus,
+          });
+        }
+      } catch (emailError) {
+        console.error(
+          `Order ${orderId} status updated but email failed:`,
+          emailError
+        );
+      }
     }
 
     return NextResponse.json({ success: true, order, stockRestored, stockErrors });

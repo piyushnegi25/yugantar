@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
+import { getUserById } from "@/lib/auth";
 import { restoreStock } from "@/lib/stock-utils";
 import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
+import { sendOrderStatusUpdateEmail } from "@/lib/email/order-notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,18 +76,41 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status to cancelled
-    await Order.findOneAndUpdate(
+    const updatedOrder = await Order.findOneAndUpdate(
       { orderId },
       {
         orderStatus: "cancelled",
         cancelReason: reason || "Customer requested cancellation",
         cancelledAt: new Date(),
-      }
+      },
+      { new: true }
     );
+
+    try {
+      const orderOwner = await getUserById(String(order.userId || ""));
+
+      if (!orderOwner?.email) {
+        throw new Error("Order owner email not found");
+      }
+
+      await sendOrderStatusUpdateEmail({
+        orderId,
+        userEmail: orderOwner.email,
+        userName: orderOwner.name,
+        previousStatus: order.orderStatus,
+        nextStatus: "cancelled",
+      });
+    } catch (emailError) {
+      console.error(
+        `Order ${orderId} cancelled but status email failed:`,
+        emailError
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: "Order cancelled successfully",
+      order: updatedOrder,
       stockRestored,
       stockErrors,
     });

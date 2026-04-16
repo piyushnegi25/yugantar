@@ -101,7 +101,14 @@ NEXT_PUBLIC_GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
 # Cloudinary
 CLOUDINARY_URL=your_cloudinary_url
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+
+# Resend (email notifications)
+RESEND_API_KEY=re_xxxxxxxxx
+RESEND_FROM_EMAIL=onboarding@resend.dev
+ORDER_ADMIN_EMAIL=piyushnegi.bca2022@imsuc.ac.in
 ```
+
+Replace `re_xxxxxxxxx` with your real Resend API key.
 
 ## Getting Started
 

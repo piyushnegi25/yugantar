@@ -9,6 +9,7 @@ import {
   buildPricedCheckoutItems,
   computeOrderTotals,
 } from "@/lib/services/pricing";
+import { sendNewOrderEmails } from "@/lib/email/order-notifications";
 
 function hasValidAddress(address: unknown) {
   if (!address || typeof address !== "object") {
@@ -129,6 +130,23 @@ export async function POST(request: NextRequest) {
     });
 
     await order.save();
+
+    try {
+      await sendNewOrderEmails({
+        orderId,
+        userEmail: auth.user.email,
+        userName: auth.user.name,
+        items: pricedItems,
+        subtotal,
+        shipping,
+        total,
+      });
+    } catch (emailError) {
+      console.error(
+        `Order ${orderId} created but confirmation email failed:`,
+        emailError
+      );
+    }
 
     return NextResponse.json({
       success: true,
