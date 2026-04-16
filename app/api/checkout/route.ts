@@ -95,6 +95,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio";
+
     const razorpay = new Razorpay({
       key_id: razorpayKeyId,
       key_secret: razorpayKeySecret,
@@ -136,7 +138,11 @@ export async function POST(request: NextRequest) {
         orderId,
         userEmail: auth.user.email,
         userName: auth.user.name,
-        items: pricedItems,
+        items: pricedItems.map((item) => ({
+          ...item,
+          image: item.image,
+          productUrl: `${baseAppUrl}/products/${item.productId}`,
+        })),
         subtotal,
         shipping,
         total,
