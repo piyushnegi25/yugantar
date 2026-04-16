@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Mail, Lock, Chrome, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { getGoogleOAuthURL } from "@/lib/google-oauth";
 import { sanitizeCallbackUrl } from "@/lib/security/validation";
 
 interface LoginFormProps {
@@ -89,11 +88,18 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
 
   const handleGoogleLogin = async () => {
     try {
-      // Pass callbackUrl as state param
-      const googleOAuthURL = getGoogleOAuthURL(callbackUrl);
-      window.location.href = googleOAuthURL;
+      const response = await fetch(
+        `/api/auth/google/url?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data?.success || !data?.url) {
+        throw new Error(data?.error || "Google OAuth is not configured");
+      }
+
+      window.location.href = data.url;
     } catch (error) {
-      setError("Failed to initialize Google OAuth");
+      setError(error instanceof Error ? error.message : "Failed to initialize Google OAuth");
     }
   };
 

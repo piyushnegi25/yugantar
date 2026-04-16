@@ -19,7 +19,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getGoogleOAuthURL } from "@/lib/google-oauth";
 
 interface SignupFormProps {
   onToggleForm: () => void;
@@ -98,10 +97,16 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
 
   const handleGoogleSignup = async () => {
     try {
-      const googleOAuthURL = getGoogleOAuthURL();
-      window.location.href = googleOAuthURL;
+      const response = await fetch("/api/auth/google/url");
+      const data = await response.json();
+
+      if (!response.ok || !data?.success || !data?.url) {
+        throw new Error(data?.error || "Google OAuth is not configured");
+      }
+
+      window.location.href = data.url;
     } catch (error) {
-      setError("Failed to initialize Google OAuth");
+      setError(error instanceof Error ? error.message : "Failed to initialize Google OAuth");
     }
   };
 

@@ -17,10 +17,17 @@ export const GOOGLE_OAUTH_CONFIG = {
 const OAUTH_STATE_SIGNING_SECRET =
   process.env.GOOGLE_OAUTH_STATE_SECRET || process.env.JWT_SECRET || "";
 
-if (!OAUTH_STATE_SIGNING_SECRET || OAUTH_STATE_SIGNING_SECRET.length < 32) {
-  throw new Error(
-    "GOOGLE_OAUTH_STATE_SECRET (or JWT_SECRET fallback) must be set and at least 32 characters"
-  );
+function getOAuthStateSigningSecret(): string {
+  if (
+    !OAUTH_STATE_SIGNING_SECRET ||
+    OAUTH_STATE_SIGNING_SECRET.length < 32
+  ) {
+    throw new Error(
+      "GOOGLE_OAUTH_STATE_SECRET (or JWT_SECRET fallback) must be set and at least 32 characters"
+    );
+  }
+
+  return OAUTH_STATE_SIGNING_SECRET;
 }
 
 type OAuthStatePayload = {
@@ -65,8 +72,10 @@ function generateState(): string {
 }
 
 function createStateSignature(payload: string) {
+  const signingSecret = getOAuthStateSigningSecret();
+
   return crypto
-    .createHmac("sha256", OAUTH_STATE_SIGNING_SECRET)
+    .createHmac("sha256", signingSecret)
     .update(payload)
     .digest("hex");
 }
