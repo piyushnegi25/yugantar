@@ -100,7 +100,9 @@ NEXT_PUBLIC_GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
 
 # Cloudinary
 CLOUDINARY_URL=your_cloudinary_url
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 # Resend (email notifications)
 RESEND_API_KEY=re_xxxxxxxxx
