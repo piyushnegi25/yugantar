@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,11 @@ interface AddressForm {
   phone: string;
 }
 
+interface SavedAddress extends AddressForm {
+  district?: string;
+  lastUsedAt: string;
+}
+
 type AddressFieldErrors = Partial<Record<keyof AddressForm, string>>;
 
 interface PinLookupResponse {
@@ -44,6 +49,87 @@ interface AuthUser {
   name?: string;
 }
 
+const SAVED_ADDRESSES_KEY = "stylesage_saved_addresses";
+
+function normalizeAddressPart(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function getAddressKey(address: AddressForm): string {
+  return [
+    normalizeAddressPart(address.fullName),
+    normalizeAddressPart(address.addressLine1),
+    normalizeAddressPart(address.addressLine2 || ""),
+    normalizeAddressPart(address.city),
+    normalizeAddressPart(address.state),
+    normalizeAddressPart(address.pinCode),
+    normalizeAddressPart(address.phone),
+  ].join("|");
+}
+
+function toSavedAddress(address: AddressForm, district?: string): SavedAddress {
+  return {
+    ...address,
+    district,
+    lastUsedAt: new Date().toISOString(),
+  };
+}
+
+function dedupeSavedAddresses(addresses: SavedAddress[]): SavedAddress[] {
+  const byKey = new Map<string, SavedAddress>();
+
+  for (const item of addresses) {
+    const key = getAddressKey(item);
+    const existing = byKey.get(key);
+
+    if (!existing) {
+      byKey.set(key, item);
+      continue;
+    }
+
+    if (
+      new Date(item.lastUsedAt).getTime() > new Date(existing.lastUsedAt).getTime()
+    ) {
+      byKey.set(key, item);
+    }
+  }
+
+  return Array.from(byKey.values()).sort(
+    (a, b) =>
+      new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime()
+  );
+}
+
+function loadSavedAddresses(): SavedAddress[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(SAVED_ADDRESSES_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as SavedAddress[];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return dedupeSavedAddresses(parsed);
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedAddresses(addresses: SavedAddress[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem(SAVED_ADDRESSES_KEY, JSON.stringify(addresses));
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
@@ -54,6 +140,7 @@ export default function CheckoutPage() {
   const [district, setDistrict] = useState("");
   const [isPinLookupLoading, setIsPinLookupLoading] = useState(false);
   const [pinLookupMessage, setPinLookupMessage] = useState("");
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: "",
@@ -110,6 +197,11 @@ export default function CheckoutPage() {
 
     initializeCheckout();
 
+    const localSavedAddresses = loadSavedAddresses();
+    if (isMounted) {
+      setSavedAddresses(localSavedAddresses);
+    }
+
     // Load Razorpay script
     const existingScript = document.querySelector(
       'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
@@ -130,6 +222,64 @@ export default function CheckoutPage() {
       }
     };
   }, [items, router]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadAddressFromPreviousOrder = async () => {
+      try {
+        const response = await fetch("/api/orders", {
+          cache: "no-store",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        const latestOrderAddress = data?.orders?.[0]?.address;
+
+        if (!latestOrderAddress || cancelled) {
+          return;
+        }
+
+        setAddress((prev) => {
+          if (
+            prev.addressLine1.trim() ||
+            prev.city.trim() ||
+            prev.state.trim() ||
+            prev.pinCode.trim() ||
+            prev.phone.trim()
+          ) {
+            return prev;
+          }
+
+          return {
+            fullName: latestOrderAddress.fullName || prev.fullName,
+            addressLine1: latestOrderAddress.addressLine1 || "",
+            addressLine2: latestOrderAddress.addressLine2 || "",
+            city: latestOrderAddress.city || "",
+            state: latestOrderAddress.state || "",
+            pinCode: latestOrderAddress.pinCode || "",
+            phone: latestOrderAddress.phone || "",
+          };
+        });
+      } catch {
+        // Ignore previous order auto-pick failures.
+      }
+    };
+
+    loadAddressFromPreviousOrder();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -257,6 +407,11 @@ export default function CheckoutPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
+  const isAddressValid = useMemo(
+    () => Object.keys(getAddressErrors()).length === 0,
+    [address]
+  );
+
   const handlePayment = async () => {
     if (!validateAddress()) {
       alert("Please fill in all required address fields.");
@@ -272,6 +427,14 @@ export default function CheckoutPage() {
     setIsLoading(true);
 
     try {
+      const dedupedSavedAddresses = dedupeSavedAddresses([
+        toSavedAddress(address, district),
+        ...savedAddresses,
+      ]).slice(0, 10);
+
+      setSavedAddresses(dedupedSavedAddresses);
+      saveSavedAddresses(dedupedSavedAddresses);
+
       const orderData = {
         items: items.map((item) => ({
           productId: item.productId, // Use productId instead of id
@@ -391,6 +554,21 @@ export default function CheckoutPage() {
     router.push("/payment?status=failed");
   };
 
+  const applySavedAddress = (selected: SavedAddress) => {
+    setAddress({
+      fullName: selected.fullName,
+      addressLine1: selected.addressLine1,
+      addressLine2: selected.addressLine2 || "",
+      city: selected.city,
+      state: selected.state,
+      pinCode: selected.pinCode,
+      phone: selected.phone,
+    });
+    setDistrict(selected.district || "");
+    setPinLookupMessage("Address auto-filled from your saved addresses");
+    setErrors({});
+  };
+
   if (!user || items.length === 0) {
     if (!authChecked || items.length === 0) {
       return (
@@ -435,6 +613,38 @@ export default function CheckoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {savedAddresses.length > 0 ? (
+                <div>
+                  <p className="mb-2 text-sm font-medium text-gray-700">
+                    Use a saved address
+                  </p>
+                  <div className="space-y-2">
+                    {savedAddresses.slice(0, 3).map((savedAddress) => (
+                      <button
+                        key={`${savedAddress.lastUsedAt}-${savedAddress.pinCode}`}
+                        type="button"
+                        onClick={() => applySavedAddress(savedAddress)}
+                        className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs text-gray-700 transition-colors hover:bg-gray-100"
+                      >
+                        <p className="font-medium text-gray-900">
+                          {savedAddress.fullName}
+                        </p>
+                        <p>
+                          {savedAddress.addressLine1}
+                          {savedAddress.addressLine2
+                            ? `, ${savedAddress.addressLine2}`
+                            : ""}
+                        </p>
+                        <p>
+                          {savedAddress.city}, {savedAddress.state} -{" "}
+                          {savedAddress.pinCode}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div>
                 <Label htmlFor="fullName">Full Name *</Label>
                   <Input
@@ -613,7 +823,7 @@ export default function CheckoutPage() {
 
               <Button
                 onClick={handlePayment}
-                disabled={isLoading || !validateAddress()}
+                disabled={isLoading || !isAddressValid}
                 className="w-full bg-gray-900 hover:bg-gray-800"
                 size="lg"
               >
