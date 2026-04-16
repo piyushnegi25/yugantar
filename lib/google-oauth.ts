@@ -5,9 +5,6 @@ import { sanitizeCallbackUrl } from "@/lib/security/validation";
 // Google OAuth configuration
 export const GOOGLE_OAUTH_CONFIG = {
   clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
-  redirectUri:
-    process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback/google`,
   scope: "openid email profile",
   responseType: "code",
   accessType: "offline",
@@ -33,6 +30,7 @@ function getOAuthStateSigningSecret(): string {
 type OAuthStatePayload = {
   csrf: string;
   callbackUrl: string;
+  redirectUri: string;
   iat: number;
 };
 
@@ -44,10 +42,19 @@ export const GOOGLE_OAUTH_URLS = {
 };
 
 // Generate Google OAuth URL
-export function getGoogleOAuthURL(callbackUrl?: string): string {
+export function getGoogleOAuthURL(
+  callbackUrl?: string,
+  redirectUri?: string
+): string {
+  const resolvedRedirectUri =
+    redirectUri ||
+    process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback/google`;
+
   const stateObj: OAuthStatePayload = {
     csrf: generateState(),
     callbackUrl: sanitizeCallbackUrl(callbackUrl || "/"),
+    redirectUri: resolvedRedirectUri,
     iat: Date.now(),
   };
 
@@ -56,7 +63,7 @@ export function getGoogleOAuthURL(callbackUrl?: string): string {
 
   const params = new URLSearchParams({
     client_id: GOOGLE_OAUTH_CONFIG.clientId,
-    redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri,
+    redirect_uri: resolvedRedirectUri,
     scope: GOOGLE_OAUTH_CONFIG.scope,
     response_type: GOOGLE_OAUTH_CONFIG.responseType,
     access_type: GOOGLE_OAUTH_CONFIG.accessType,
@@ -123,6 +130,10 @@ export function parseAndValidateOAuthState(
       return null;
     }
 
+    if (typeof parsed.redirectUri !== "string" || !parsed.redirectUri) {
+      return null;
+    }
+
     if (Date.now() - parsed.iat > maxAgeMs) {
       return null;
     }
@@ -130,6 +141,7 @@ export function parseAndValidateOAuthState(
     return {
       csrf: parsed.csrf,
       callbackUrl: sanitizeCallbackUrl(parsed.callbackUrl || "/"),
+      redirectUri: parsed.redirectUri,
       iat: parsed.iat,
     };
   } catch {
@@ -151,10 +163,29 @@ export async function exchangeCodeForTokens(code: string): Promise<{
   refresh_token?: string;
   expires_in: number;
   token_type: string;
+}>;
+export async function exchangeCodeForTokens(
+  code: string,
+  redirectUriOverride: string
+): Promise<{
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+}>;
+export async function exchangeCodeForTokens(
+  code: string,
+  redirectUriOverride?: string
+): Promise<{
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
 }> {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+  const redirectUri =
+    redirectUriOverride || process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
 
   if (!clientSecret) {
     throw new Error("Google Client Secret not configured");

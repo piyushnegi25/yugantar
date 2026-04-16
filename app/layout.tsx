@@ -88,6 +88,10 @@ export default function RootLayout({
         <meta name="ICBM" content="28.6139, 77.2090" />
         <meta name="googlebot-news" content="index,follow" />
         <meta
+          name="google-site-verification"
+          content="j1uSQaEaa1yilnjFXycuHu4pShKd0kl9XCKSrP1sPA4"
+        />
+        <meta
           name="classification"
           content="E-commerce, Fashion, T-Shirts, Streetwear"
         />

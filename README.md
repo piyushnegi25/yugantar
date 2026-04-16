@@ -112,6 +112,14 @@ ORDER_ADMIN_EMAIL=piyushnegi.bca2022@imsuc.ac.in
 
 Replace `re_xxxxxxxxx` with your real Resend API key.
 
+## Search Console & SEO endpoints
+
+- Verify file endpoint: `/googleba8044e21031917a.html`
+- Sitemap index: `/sitemap.xml`
+- Static pages sitemap: `/sitemap-static.xml`
+- Product pages sitemap: `/sitemap-products.xml`
+- Robots: `/robots.txt`
+
 ## Getting Started
 
 1. **Clone the repository**

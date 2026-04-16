@@ -63,8 +63,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(callbackPageUrl);
     }
 
-    // Exchange code for tokens
-    const tokens = await exchangeCodeForTokens(code);
+    // Exchange code for tokens using the same redirect URI used in authorize step
+    const redirectUri =
+      parsedState?.redirectUri ||
+      `${request.nextUrl.origin}/api/auth/callback/google`;
+    const tokens = await exchangeCodeForTokens(code, redirectUri);
 
     // Get user info from Google
     const googleUser = await getGoogleUserInfo(tokens.access_token);
