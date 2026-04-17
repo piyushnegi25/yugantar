@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { authenticateUser, createJWT } from "@/lib/auth";
+import { authenticateUser, createJWT, getUserByEmail } from "@/lib/auth";
 import { getAuthCookieOptions } from "@/lib/security/cookies";
 import {
   isValidEmail,
@@ -48,9 +48,28 @@ export async function POST(request: NextRequest) {
 
     const user = await authenticateUser(normalizedEmail, password);
     if (!user) {
+      const existingUser = await getUserByEmail(normalizedEmail);
+      if (
+        existingUser &&
+        existingUser.provider === "email" &&
+        !existingUser.isEmailVerified
+      ) {
+        return NextResponse.json(
+          { error: "Please verify your email with OTP before signing in" },
+          { status: 403 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
+      );
+    }
+
+    if (user.provider === "email" && !user.isEmailVerified) {
+      return NextResponse.json(
+        { error: "Please verify your email with OTP before signing in" },
+        { status: 403 }
       );
     }
 
