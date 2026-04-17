@@ -204,9 +204,11 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="rounded-full border border-border bg-background px-4 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="h-10 w-10 rounded-full border border-border bg-background p-0 text-muted-foreground hover:bg-muted hover:text-foreground sm:w-auto sm:px-4"
         >
-          Sign In
+          <User className="h-4 w-4 sm:hidden" />
+          <span className="hidden sm:inline">Sign In</span>
+          <span className="sr-only sm:hidden">Sign In</span>
         </Button>
       </Link>
     );

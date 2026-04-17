@@ -241,8 +241,8 @@ export function HomeHeroCarousel() {
           ))}
         </CarouselContent>
 
-        <CarouselPrevious className="left-3 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:h-11 md:w-11" />
-        <CarouselNext className="right-3 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:h-11 md:w-11" />
+        <CarouselPrevious className="left-3 top-[42%] z-20 hidden h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:inline-flex md:h-11 md:w-11" />
+        <CarouselNext className="right-3 top-[42%] z-20 hidden h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:inline-flex md:h-11 md:w-11" />
       </Carousel>
 
       <div className="mt-4 flex justify-center gap-2 sm:mt-5">

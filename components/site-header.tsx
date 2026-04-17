@@ -24,7 +24,7 @@ export function SiteHeader({
 
           <Link
             href="/"
-            className="absolute left-1/2 -translate-x-1/2 text-xl font-black uppercase tracking-[0.22em] text-foreground sm:text-2xl"
+            className="absolute left-1/2 -translate-x-1/2 text-lg font-black uppercase tracking-[0.16em] text-foreground sm:text-2xl sm:tracking-[0.22em]"
           >
             Yugantar
           </Link>
@@ -33,7 +33,7 @@ export function SiteHeader({
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-full border-border bg-background text-foreground hover:bg-muted"
+              className="hidden h-10 w-10 rounded-full border-border bg-background text-foreground hover:bg-muted sm:inline-flex"
               aria-label="Search"
             >
               <Search className="h-4 w-4" />
