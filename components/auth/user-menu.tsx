@@ -194,7 +194,7 @@ export function UserMenu() {
 
   if (isLoading) {
     return (
-      <div className="w-8 h-8 bg-gray-200  rounded-full animate-pulse" />
+      <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
     );
   }
 
@@ -204,7 +204,7 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="text-gray-600 hover:text-gray-900"
+          className="rounded-full border border-border bg-background px-4 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           Sign In
         </Button>
@@ -217,8 +217,8 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-border bg-background p-0 hover:bg-muted">
+          <Avatar className="h-9 w-9">
             {user.picture ? <AvatarImage src={user.picture} alt={user.name} /> : null}
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>

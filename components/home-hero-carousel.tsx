@@ -169,7 +169,7 @@ export function HomeHeroCarousel() {
   }, [api]);
 
   return (
-    <section className="relative h-[74vh] min-h-[420px] w-full overflow-hidden bg-muted sm:h-[80vh] md:h-[85vh]">
+    <section className="app-shell pt-4 sm:pt-6">
       <Carousel
         key={heroSlides.length}
         setApi={setApi}
@@ -178,50 +178,74 @@ export function HomeHeroCarousel() {
           loop: true,
           containScroll: "trimSnaps",
         }}
-        className="h-full w-full"
+        className="section-shell relative overflow-hidden"
       >
         <CarouselContent className="-ml-0 h-full">
           {heroSlides.map((slide, index) => (
             <CarouselItem key={slide.id} className="pl-0">
-              <div className="relative h-[74vh] min-h-[420px] w-full sm:h-[80vh] md:h-[85vh]">
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  className="object-cover object-center"
-                  sizes="100vw"
-                  priority={index === 0}
-                />
-                <div className="absolute inset-0 bg-black/40" />
+              <div className="grid min-h-[520px] w-full grid-cols-1 bg-card lg:min-h-[560px] lg:grid-cols-12">
+                <div className="relative order-1 min-h-[280px] overflow-hidden lg:order-2 lg:col-span-7 lg:min-h-[560px]">
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 1024px) 100vw, 58vw"
+                    priority={index === 0}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent lg:bg-gradient-to-l lg:from-black/15 lg:via-transparent lg:to-transparent" />
+                </div>
+
+                <div className="order-2 flex flex-col justify-between px-4 pb-6 pt-5 sm:px-6 lg:order-1 lg:col-span-5 lg:px-8 lg:py-8">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-primary" />
+                    New Season Drop
+                  </div>
+
+                  <div className="mt-4 lg:mt-8">
+                    <h1 className="text-[clamp(2rem,8vw,3.8rem)] font-extrabold lowercase leading-[0.95] text-foreground">
+                      {activeSlide?.title || "Till End of the Era"}
+                    </h1>
+                    {activeSlide?.subtitle ? (
+                      <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                        {activeSlide.subtitle}
+                      </p>
+                    ) : null}
+                    <div className="mt-6 flex flex-wrap gap-2 sm:gap-3">
+                      <Link href={activeSlide?.linkUrl || "/collections"}>
+                        <Button className="cta-pill-primary px-6 sm:px-7">
+                          {activeSlide?.ctaText || "Shop Collection"}
+                        </Button>
+                      </Link>
+                      <Link href="/collections" className="cta-pill border border-border bg-background px-6 text-foreground hover:bg-muted">
+                        Open Store
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap items-center gap-2 lg:mt-10">
+                    {[
+                      "Oversized",
+                      "Graphic",
+                      "Anime",
+                      "Streetwear",
+                    ].map((tag) => (
+                      <span key={tag} className="pill-control py-1.5 text-xs">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
 
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center sm:px-6">
-          <h1 className="mb-4 text-[clamp(2rem,9vw,6rem)] font-black uppercase tracking-[0.08em] text-white drop-shadow-lg sm:mb-6">
-            {activeSlide?.title || "Till End of the Era"}
-          </h1>
-          {activeSlide?.subtitle ? (
-            <p className="mb-6 max-w-2xl text-[clamp(0.95rem,3.2vw,1.25rem)] leading-relaxed text-white/90">
-              {activeSlide.subtitle}
-            </p>
-          ) : null}
-          <Link href={activeSlide?.linkUrl || "/collections"}>
-            <Button
-              size="lg"
-              className="h-11 rounded-none bg-primary px-6 text-sm font-bold uppercase tracking-[0.08em] text-white hover:bg-primary/90 sm:h-12 sm:px-8 sm:text-base md:px-10 md:text-lg"
-            >
-              {activeSlide?.ctaText || "Shop Collection"}
-            </Button>
-          </Link>
-        </div>
-
-        <CarouselPrevious className="left-3 top-1/2 z-20 h-12 w-12 -translate-y-1/2 border-white/70 bg-black/45 text-white shadow-md backdrop-blur-sm transition-colors hover:bg-black/60 hover:text-white md:h-11 md:w-11" />
-        <CarouselNext className="right-3 top-1/2 z-20 h-12 w-12 -translate-y-1/2 border-white/70 bg-black/45 text-white shadow-md backdrop-blur-sm transition-colors hover:bg-black/60 hover:text-white md:h-11 md:w-11" />
+        <CarouselPrevious className="left-3 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:h-11 md:w-11" />
+        <CarouselNext className="right-3 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted md:h-11 md:w-11" />
       </Carousel>
 
-      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-6">
+      <div className="mt-4 flex justify-center gap-2 sm:mt-5">
         {heroSlides.map((_, index) => (
           <button
             key={index}
@@ -231,8 +255,8 @@ export function HomeHeroCarousel() {
             className={cn(
               "h-2.5 rounded-full transition-all duration-300",
               currentSlide === index
-                ? "w-6 bg-white"
-                : "w-2.5 bg-white/60 hover:bg-white"
+                ? "w-10 bg-foreground"
+                : "w-2.5 bg-foreground/25 hover:bg-foreground/40"
             )}
           />
         ))}

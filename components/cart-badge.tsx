@@ -11,7 +11,11 @@ export function CartBadge() {
 
   return (
     <Link href="/cart">
-      <Button variant="outline" size="sm" className="relative">
+      <Button
+        variant="outline"
+        size="icon"
+        className="relative h-10 w-10 rounded-full border-border bg-background text-foreground hover:bg-muted"
+      >
         <ShoppingCart className="w-4 h-4" />
         {!isLoading && totalItems > 0 && (
           <Badge
