@@ -5,7 +5,7 @@ export const siteConfig = {
   name: "Yugantar",
   description:
     "Buy premium t-shirts online in India with anime, meme, streetwear, and custom designs. Fast shipping, quality fabric, and inclusive sizing.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.yugantar.studio",
   siteName: "Yugantar - Premium T-Shirts India",
   creator: "@yugantarstudio",
   authors: [
@@ -80,7 +80,7 @@ export const siteConfig = {
 
 export const domainMigrationConfig = {
   oldDomain: "https://www.stylesage.me",
-  newDomain: process.env.NEXT_PUBLIC_APP_URL || "https://yugantar.studio",
+  newDomain: process.env.NEXT_PUBLIC_APP_URL || "https://www.yugantar.studio",
 };
 
 export function absoluteUrl(path: string = "") {

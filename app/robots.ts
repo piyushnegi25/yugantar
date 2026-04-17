@@ -109,6 +109,5 @@ export default function robots(): MetadataRoute.Robots {
       `${baseUrl}/sitemap-static.xml`,
       `${baseUrl}/sitemap-products.xml`,
     ],
-    host: new URL(baseUrl).host,
   };
 }
