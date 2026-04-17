@@ -5,8 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddToCart } from "@/components/add-to-cart";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
+import { findProductBySlug } from "@/lib/data/products";
 import { normalizeStock } from "@/lib/stock-normalization";
 import { createMetadata } from "@/lib/seo";
 import { ProductImageGallery } from "@/components/product-image-gallery";
@@ -21,10 +20,7 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  await connectDB();
-  const product = await Product.findOne({ slug, isActive: true })
-    .select("name description")
-    .lean();
+  const product = await findProductBySlug(slug);
 
   if (!product || !product.isActive) {
     return createMetadata({
@@ -45,8 +41,7 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  await connectDB();
-  const product = await Product.findOne({ slug, isActive: true }).lean();
+  const product = await findProductBySlug(slug);
 
   if (!product || !product.isActive) {
     notFound();

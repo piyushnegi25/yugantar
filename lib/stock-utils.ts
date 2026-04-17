@@ -1,6 +1,8 @@
-import connectDB from "./mongodb";
-import Product from "./models/Product";
-import { IOrderItem } from "./models/Order";
+import {
+  findProductById,
+  updateProductStockById,
+} from "@/lib/data/products";
+import { IOrderItem } from "@/lib/domain/types";
 
 /**
  * Helper function to safely get stock value from either Map or plain object
@@ -34,8 +36,6 @@ export async function validateStock(items: IOrderItem[]): Promise<{
     availableQty: number;
   }[];
 }> {
-  await connectDB();
-
   const outOfStockItems: {
     productId: string;
     size: string;
@@ -45,7 +45,7 @@ export async function validateStock(items: IOrderItem[]): Promise<{
 
   for (const item of items) {
     try {
-      const product = await Product.findById(item.productId);
+      const product = await findProductById(item.productId);
       if (!product) {
         outOfStockItems.push({
           productId: item.productId,
@@ -94,49 +94,34 @@ export async function reduceStock(items: IOrderItem[]): Promise<{
   success: boolean;
   errors: string[];
 }> {
-  await connectDB();
-
   const errors: string[] = [];
-  const updates: Promise<any>[] = [];
-
   for (const item of items) {
     try {
-      const updatePromise = Product.findByIdAndUpdate(
-        item.productId,
-        {
-          $inc: {
-            [`stock.${item.size}`]: -item.quantity,
-          },
-        },
-        { new: true }
-      ).then((updatedProduct) => {
-        if (!updatedProduct) {
-          errors.push(`Product ${item.productId} not found`);
-          return;
-        }
+      const product = await findProductById(item.productId);
+      if (!product) {
+        errors.push(`Product ${item.productId} not found`);
+        continue;
+      }
 
-        const newStock = getStockValue(updatedProduct.stock, item.size);
-        if (newStock < 0) {
-          // If stock goes below 0, revert the change
-          Product.findByIdAndUpdate(item.productId, {
-            $inc: {
-              [`stock.${item.size}`]: item.quantity,
-            },
-          });
-          errors.push(
-            `Insufficient stock for product ${item.productId}, size ${item.size}`
-          );
-          return;
-        }
+      const currentStock = getStockValue(product.stock, item.size);
+      const nextStock = currentStock - item.quantity;
 
-        console.log(
-          `✅ Stock reduced for product ${item.productId}, size ${item.size}: ${
-            newStock + item.quantity
-          } → ${newStock}`
+      if (nextStock < 0) {
+        errors.push(
+          `Insufficient stock for product ${item.productId}, size ${item.size}`
         );
-      });
+        continue;
+      }
 
-      updates.push(updatePromise);
+      const nextProductStock = {
+        ...(product.stock as Record<string, number>),
+        [item.size]: nextStock,
+      };
+
+      await updateProductStockById(item.productId, nextProductStock);
+      console.log(
+        `✅ Stock reduced for product ${item.productId}, size ${item.size}: ${currentStock} → ${nextStock}`
+      );
     } catch (error) {
       console.error(
         `Error reducing stock for product ${item.productId}:`,
@@ -148,13 +133,6 @@ export async function reduceStock(items: IOrderItem[]): Promise<{
         }`
       );
     }
-  }
-
-  try {
-    await Promise.all(updates);
-  } catch (error) {
-    console.error("Error executing stock updates:", error);
-    errors.push("Failed to execute stock updates");
   }
 
   return {
@@ -172,36 +150,27 @@ export async function restoreStock(items: IOrderItem[]): Promise<{
   success: boolean;
   errors: string[];
 }> {
-  await connectDB();
-
   const errors: string[] = [];
-  const updates: Promise<any>[] = [];
-
   for (const item of items) {
     try {
-      const updatePromise = Product.findByIdAndUpdate(
-        item.productId,
-        {
-          $inc: {
-            [`stock.${item.size}`]: item.quantity,
-          },
-        },
-        { new: true }
-      ).then((updatedProduct) => {
-        if (!updatedProduct) {
-          errors.push(`Product ${item.productId} not found`);
-          return;
-        }
+      const product = await findProductById(item.productId);
+      if (!product) {
+        errors.push(`Product ${item.productId} not found`);
+        continue;
+      }
 
-        const newStock = getStockValue(updatedProduct.stock, item.size);
-        console.log(
-          `✅ Stock restored for product ${item.productId}, size ${
-            item.size
-          }: ${newStock - item.quantity} → ${newStock}`
-        );
-      });
+      const currentStock = getStockValue(product.stock, item.size);
+      const nextStock = currentStock + item.quantity;
 
-      updates.push(updatePromise);
+      const nextProductStock = {
+        ...(product.stock as Record<string, number>),
+        [item.size]: nextStock,
+      };
+
+      await updateProductStockById(item.productId, nextProductStock);
+      console.log(
+        `✅ Stock restored for product ${item.productId}, size ${item.size}: ${currentStock} → ${nextStock}`
+      );
     } catch (error) {
       console.error(
         `Error restoring stock for product ${item.productId}:`,
@@ -213,13 +182,6 @@ export async function restoreStock(items: IOrderItem[]): Promise<{
         }`
       );
     }
-  }
-
-  try {
-    await Promise.all(updates);
-  } catch (error) {
-    console.error("Error executing stock restoration:", error);
-    errors.push("Failed to execute stock restoration");
   }
 
   return {
@@ -238,10 +200,8 @@ export async function getCurrentStock(
   productId: string,
   size: string
 ): Promise<number> {
-  await connectDB();
-
   try {
-    const product = await Product.findById(productId);
+    const product = await findProductById(productId);
     if (!product) {
       return 0;
     }

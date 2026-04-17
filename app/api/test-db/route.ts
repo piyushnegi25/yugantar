@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
 import { requireAdminUser } from "@/lib/security/auth-guards";
+import { getSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +11,16 @@ export async function GET(request: NextRequest) {
       return auth.error;
     }
 
-    const connection = await connectDB();
+    const supabase = getSupabaseAdminClient();
+    const { error } = await supabase.from("users").select("id").limit(1);
+
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Database connection successful",
-      readyState: connection.connection.readyState,
-      host: connection.connection.host,
-      name: connection.connection.name,
+      message: "Supabase connection successful",
     });
   } catch (error) {
     console.error("Database connection test failed:", error);

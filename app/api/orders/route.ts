@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
 import { restoreStock } from "@/lib/stock-utils";
 import { getUserById } from "@/lib/auth";
 import {
@@ -8,6 +6,16 @@ import {
   requireAuthenticatedUser,
 } from "@/lib/security/auth-guards";
 import { sendOrderStatusUpdateEmail } from "@/lib/email/order-notifications";
+import {
+  findAllOrders,
+  findOrderByOrderId,
+  findOrdersByUserId,
+  updateOrderByOrderId,
+} from "@/lib/data/orders";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +29,10 @@ const ORDER_STATUSES = new Set([
 
 export async function GET(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ success: true, orders: [] });
+    }
+
     const auth = await requireAuthenticatedUser(request);
     if (auth.error) {
       return auth.error;
@@ -28,8 +40,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const isAdmin = searchParams.get("admin") === "true";
-
-    await connectDB();
 
     let orders;
     if (isAdmin) {
@@ -40,15 +50,16 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      orders = await Order.find({}).sort({ createdAt: -1 }).exec();
+      orders = await findAllOrders();
     } else {
-      orders = await Order.find({ userId: auth.user._id.toString() })
-        .sort({ createdAt: -1 })
-        .exec();
+      orders = await findOrdersByUserId(auth.user._id.toString());
     }
 
     return NextResponse.json({ success: true, orders });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json({ success: true, orders: [] });
+    }
     console.error("Error fetching orders:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch orders" },
@@ -59,6 +70,13 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const auth = await requireAdminUser(request);
     if (auth.error) {
       return auth.error;
@@ -80,9 +98,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    const existingOrder = await Order.findOne({ orderId });
+    const existingOrder = await findOrderByOrderId(orderId);
 
     if (!existingOrder) {
       return NextResponse.json(
@@ -139,35 +155,24 @@ export async function PUT(request: NextRequest) {
       }
 
       setPayload.cancelReason = "Cancelled by admin";
-      setPayload.cancelledAt = new Date();
+      setPayload.cancelledAt = new Date().toISOString();
     } else if (orderStatus !== "cancelled") {
       unsetPayload.cancelReason = 1;
       unsetPayload.cancelledAt = 1;
     }
 
-    const query: Record<string, unknown> = {
-      orderId,
-    };
-
-    if (orderStatus === "cancelled") {
-      query.orderStatus = { $in: ["placed", "confirmed"] };
-    } else {
-      query.orderStatus = { $ne: "cancelled" };
-    }
-
-    const updateDoc: {
-      $set: Record<string, unknown>;
-      $unset?: Record<string, 1>;
-    } = {
-      $set: setPayload,
-    };
-
-    if (Object.keys(unsetPayload).length > 0) {
-      updateDoc.$unset = unsetPayload;
-    }
-
-    const order = await Order.findOneAndUpdate(query, updateDoc, {
-      new: true,
+    const mergedPayment = { ...existingOrder.payment };
+    const order = await updateOrderByOrderId(orderId, {
+      payment: mergedPayment,
+      orderStatus,
+      cancelReason:
+        orderStatus === "cancelled"
+          ? (setPayload.cancelReason as string)
+          : undefined,
+      cancelledAt:
+        orderStatus === "cancelled"
+          ? (setPayload.cancelledAt as string)
+          : undefined,
     });
 
     if (!order) {
@@ -200,6 +205,12 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true, order, stockRestored, stockErrors });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating order:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update order" },

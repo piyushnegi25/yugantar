@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import connectDB from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
 import { reduceStock } from "@/lib/stock-utils";
 import { NextRequest } from "next/server";
 import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import {
+  findOrderByOrderIdForUser,
+  updateOrderByOrderIdForUser,
+} from "@/lib/data/orders";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 function isSignatureValid(
   orderId: string,
@@ -28,6 +34,13 @@ function isSignatureValid(
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const auth = await requireAuthenticatedUser(request);
     if (auth.error) {
       return auth.error;
@@ -80,12 +93,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    const order = await Order.findOne({
+    const order = await findOrderByOrderIdForUser(
       orderId,
-      userId: auth.user._id.toString(),
-    });
+      auth.user._id.toString()
+    );
 
     if (!order) {
       return NextResponse.json(
@@ -133,15 +144,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Update order with payment details
-      await Order.findOneAndUpdate(
-        { orderId, userId: auth.user._id.toString() },
-        {
-          "payment.razorpayPaymentId": razorpay_payment_id,
-          "payment.razorpaySignature": razorpay_signature,
-          "payment.status": "completed",
-          orderStatus: "confirmed",
-        }
-      );
+      await updateOrderByOrderIdForUser(orderId, auth.user._id.toString(), {
+        payment: {
+          ...order.payment,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: razorpay_signature,
+          status: "completed",
+        },
+        orderStatus: "confirmed",
+      });
 
       return NextResponse.json({
         success: true,
@@ -151,12 +162,12 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Update order as failed
-      await Order.findOneAndUpdate(
-        { orderId, userId: auth.user._id.toString() },
-        {
-          "payment.status": "failed",
-        }
-      );
+      await updateOrderByOrderIdForUser(orderId, auth.user._id.toString(), {
+        payment: {
+          ...order.payment,
+          status: "failed",
+        },
+      });
 
       return NextResponse.json(
         { success: false, error: "Payment verification failed" },
@@ -164,6 +175,12 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Payment verification error:", error);
     return NextResponse.json(
       { success: false, error: "Payment verification failed" },

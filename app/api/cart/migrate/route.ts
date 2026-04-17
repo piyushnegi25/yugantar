@@ -1,14 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Cart, { ICartItem } from "@/lib/models/Cart";
 import { getUserFromToken } from "@/lib/auth";
+import {
+  createCart,
+  deleteCartBySessionId,
+  findCartBySessionId,
+  findCartByUserId,
+  type CartItemRecord,
+  updateCartById,
+} from "@/lib/data/carts";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 // POST /api/cart/migrate - Migrate guest cart to user cart when user logs in
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
 
     const body = await request.json();
     const { sessionId }: { sessionId: string } = body;
@@ -33,24 +48,25 @@ export async function POST(request: NextRequest) {
     const userId = user._id.toString();
 
     // Find user's existing cart
-    let userCart = await Cart.findOne({ userId });
+    let userCart = await findCartByUserId(userId);
 
     // Find session cart
-    const sessionCart = await Cart.findOne({ sessionId });
+    const sessionCart = await findCartBySessionId(sessionId);
 
     if (sessionCart && sessionCart.items.length > 0) {
       if (userCart) {
         // Merge carts - add session cart items to user cart, avoiding duplicates
         const existingProductIds = new Set(
           userCart.items.map(
-            (item: ICartItem) => `${item.productId}-${item.color}-${item.size}`
+            (item: CartItemRecord) =>
+              `${item.productId}-${item.color}-${item.size}`
           )
         );
 
-        sessionCart.items.forEach((sessionItem: ICartItem) => {
+        sessionCart.items.forEach((sessionItem: CartItemRecord) => {
           const itemKey = `${sessionItem.productId}-${sessionItem.color}-${sessionItem.size}`;
           const existingItem = userCart!.items.find(
-            (item: ICartItem) =>
+            (item: CartItemRecord) =>
               `${item.productId}-${item.color}-${item.size}` === itemKey
           );
 
@@ -63,32 +79,40 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        await userCart.save();
+        userCart =
+          (await updateCartById(userCart.id, { items: userCart.items })) ||
+          userCart;
       } else {
         // Convert session cart to user cart
-        sessionCart.userId = userId;
-        sessionCart.sessionId = null;
-        await sessionCart.save();
-        userCart = sessionCart;
+        userCart =
+          (await updateCartById(sessionCart.id, {
+            userId,
+            sessionId: null,
+          })) || sessionCart;
       }
 
       // Delete the session cart
-      await Cart.deleteOne({ sessionId });
+      await deleteCartBySessionId(sessionId);
     } else if (!userCart) {
       // Create empty user cart
-      userCart = new Cart({ userId, items: [] });
-      await userCart.save();
+      userCart = await createCart({ userId, items: [] });
     }
 
     return NextResponse.json({
       success: true,
       items: userCart.items,
       totalItems: userCart.items.reduce(
-        (sum: number, item: ICartItem) => sum + item.quantity,
+        (sum: number, item: CartItemRecord) => sum + item.quantity,
         0
       ),
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error migrating cart:", error);
     return NextResponse.json(
       { error: "Failed to migrate cart" },

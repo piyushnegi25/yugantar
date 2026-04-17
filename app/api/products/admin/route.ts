@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
 import { requireAdminUser } from "@/lib/security/auth-guards";
+import {
+  createProductRecord,
+  deleteProductById,
+  findProductById,
+  findProductBySlug,
+  updateProductById,
+} from "@/lib/data/products";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 import {
   normalizeStringList,
   parsePrice,
@@ -55,13 +64,18 @@ function getPublicIdFromUrl(url: string): string {
 // POST /api/products/admin - Create new product
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     // Check admin authentication
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response if auth failed
     }
-
-    await connectDB();
 
     const formData = await request.formData();
 
@@ -131,7 +145,7 @@ export async function POST(request: NextRequest) {
     const slug = createSlug(name);
 
     // Check if slug already exists
-    const existingProduct = await Product.findOne({ slug });
+    const existingProduct = await findProductBySlug(slug);
     if (existingProduct) {
       return NextResponse.json(
         { error: "A product with this name already exists" },
@@ -173,7 +187,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create product
-    const product = new Product({
+    const product = await createProductRecord({
       name,
       slug,
       description,
@@ -191,13 +205,17 @@ export async function POST(request: NextRequest) {
       reviews: 0,
     });
 
-    await product.save();
-
     return NextResponse.json(
       { message: "Product created successfully", product },
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error creating product:", error);
     return NextResponse.json(
       { error: "Failed to create product" },
@@ -209,6 +227,13 @@ export async function POST(request: NextRequest) {
 // PUT /api/products/admin - Update existing product
 export async function PUT(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     // Check admin authentication
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
@@ -216,8 +241,6 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log("PUT request received for product update");
-    await connectDB();
-
     const formData = await request.formData();
 
     // Extract form fields
@@ -295,7 +318,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Find existing product
-    const existingProduct = await Product.findById(productId);
+    const existingProduct = await findProductById(productId);
     if (!existingProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -305,11 +328,11 @@ export async function PUT(request: NextRequest) {
 
     // Check if new slug conflicts with another product
     if (slug !== existingProduct.slug) {
-      const conflictingProduct = await Product.findOne({
-        slug,
-        _id: { $ne: productId },
-      });
-      if (conflictingProduct) {
+      const conflictingProduct = await findProductBySlug(slug);
+      if (
+        conflictingProduct &&
+        conflictingProduct._id.toString() !== existingProduct._id.toString()
+      ) {
         return NextResponse.json(
           { error: "A product with this name already exists" },
           { status: 400 }
@@ -375,25 +398,21 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update product
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      {
-        name,
-        slug,
-        description,
-        price,
-        originalPrice,
-        images: imageUrls,
-        category,
-        tags,
-        sizes,
-        colors,
-        stock,
-        isFeatured,
-        isActive,
-      },
-      { new: true, runValidators: true }
-    );
+    const updatedProduct = await updateProductById(productId, {
+      name,
+      slug,
+      description,
+      price,
+      originalPrice: originalPrice ?? null,
+      images: imageUrls,
+      category,
+      tags,
+      sizes,
+      colors,
+      stock,
+      isFeatured,
+      isActive,
+    });
 
     if (!updatedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -404,6 +423,12 @@ export async function PUT(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating product:", error);
     return NextResponse.json(
       {
@@ -419,13 +444,18 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/products/admin - Delete product
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     // Check admin authentication
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response if auth failed
     }
-
-    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
@@ -438,7 +468,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Find and delete product
-    const product = await Product.findById(productId);
+    const product = await findProductById(productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -453,14 +483,22 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    // Delete product from database
-    await Product.findByIdAndDelete(productId);
+    const deleted = await deleteProductById(productId);
+    if (!deleted) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
 
     return NextResponse.json(
       { message: "Product deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error deleting product:", error);
     return NextResponse.json(
       { error: "Failed to delete product" },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromToken } from "@/lib/auth";
-import type { IUser } from "@/lib/models/User";
+import type { IUser } from "@/lib/domain/types";
 
 type AuthGuardResult =
   | {

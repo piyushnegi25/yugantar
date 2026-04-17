@@ -1,8 +1,15 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import connectDB from "./mongodb";
-import User, { type IUser } from "./models/User";
+import type { IUser } from "@/lib/domain/types";
 import { sanitizeEmail } from "@/lib/security/validation";
+import {
+  createUserRecord,
+  ensureDefaultAdminUser,
+  findUserByEmail,
+  findUserById,
+  updateUserLastLoginAt,
+} from "@/lib/data/users";
+import { SupabaseConfigError } from "@/lib/supabase/server";
 
 const jwtSecretValue = process.env.JWT_SECRET;
 if (!jwtSecretValue || jwtSecretValue.length < 32) {
@@ -57,10 +64,11 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 // Get user by ID
 export async function getUserById(id: string): Promise<IUser | null> {
   try {
-    await connectDB();
-    const user = await User.findById(id);
-    return user;
+    return await findUserById(id);
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return null;
+    }
     console.error("Error getting user by ID:", error);
     return null;
   }
@@ -69,11 +77,12 @@ export async function getUserById(id: string): Promise<IUser | null> {
 // Get user by email
 export async function getUserByEmail(email: string): Promise<IUser | null> {
   try {
-    await connectDB();
     const normalizedEmail = sanitizeEmail(email);
-    const user = await User.findOne({ email: normalizedEmail });
-    return user;
+    return await findUserByEmail(normalizedEmail);
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return null;
+    }
     console.error("Error getting user by email:", error);
     return null;
   }
@@ -90,18 +99,22 @@ export async function createUser(userData: {
   googleId?: string
 }): Promise<IUser> {
   try {
-    await connectDB();
-
-    const user = new User({
-      ...userData,
+    const user = await createUserRecord({
       email: sanitizeEmail(userData.email),
+      name: userData.name,
+      password: userData.password,
+      picture: userData.picture,
+      role: userData.role,
+      provider: userData.provider,
+      googleId: userData.googleId,
       isEmailVerified: userData.provider === "google",
-      lastLoginAt: new Date(),
     });
 
-    await user.save();
     return user;
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      throw new Error("Authentication service is temporarily unavailable");
+    }
     console.error("Error creating user:", error);
     throw new Error("Failed to create user");
   }
@@ -110,8 +123,7 @@ export async function createUser(userData: {
 // Update user last login
 export async function updateUserLastLogin(userId: string): Promise<void> {
   try {
-    await connectDB();
-    await User.findByIdAndUpdate(userId, { lastLoginAt: new Date() });
+    await updateUserLastLoginAt(userId);
   } catch (error) {
     console.error("Error updating last login:", error);
   }
@@ -120,9 +132,8 @@ export async function updateUserLastLogin(userId: string): Promise<void> {
 // Authenticate user with email/password
 export async function authenticateUser(email: string, password: string): Promise<IUser | null> {
   try {
-    await connectDB();
     const normalizedEmail = sanitizeEmail(email);
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await findUserByEmail(normalizedEmail);
 
     if (!user || user.provider !== "email" || !user.password) {
       return null;
@@ -133,12 +144,13 @@ export async function authenticateUser(email: string, password: string): Promise
       return null;
     }
 
-    // Update last login
-    user.lastLoginAt = new Date();
-    await user.save();
+    await updateUserLastLoginAt(user._id.toString());
 
     return user;
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return null;
+    }
     console.error("Error authenticating user:", error);
     return null;
   }
@@ -158,8 +170,6 @@ export async function getUserFromToken(token: string): Promise<IUser | null> {
 // Initialize default admin user
 export async function initializeDefaultAdmin(): Promise<void> {
   try {
-    await connectDB();
-
     const adminEmail = sanitizeEmail(
       process.env.DEFAULT_ADMIN_EMAIL || "admin@yugantar.studio"
     );
@@ -179,22 +189,19 @@ export async function initializeDefaultAdmin(): Promise<void> {
       return;
     }
 
-    const adminExists = await User.findOne({ email: adminEmail });
-    if (!adminExists) {
-      const hashedPassword = await hashPassword(adminPassword);
+    const hashedPassword = await hashPassword(adminPassword);
+    await ensureDefaultAdminUser({
+      email: adminEmail,
+      name: "Admin User",
+      passwordHash: hashedPassword,
+    });
 
-      await User.create({
-        email: adminEmail,
-        name: "Admin User",
-        password: hashedPassword,
-        role: "admin",
-        provider: "email",
-        isEmailVerified: true,
-      });
-
-      console.log("✅ Default admin user created");
-    }
+    console.log("✅ Default admin user checked/created");
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      console.warn("Skipping default admin init: Supabase not configured");
+      return;
+    }
     console.error("Error initializing admin:", error);
     throw error;
   }

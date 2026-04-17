@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { absoluteUrl } from "@/lib/seo";
+import { listProducts } from "@/lib/data/products";
 
 export const revalidate = 3600;
 
@@ -16,11 +15,7 @@ function escapeXml(value: string): string {
 
 export async function GET() {
   try {
-    await connectDB();
-
-    const products = await Product.find({ isActive: true })
-      .select("slug updatedAt")
-      .lean();
+    const products = await listProducts({ isActive: true });
 
     const urls = products
       .filter((product) => typeof product.slug === "string" && product.slug.trim())

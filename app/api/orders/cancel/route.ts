@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
 import { getUserById } from "@/lib/auth";
 import { restoreStock } from "@/lib/stock-utils";
 import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
 import { sendOrderStatusUpdateEmail } from "@/lib/email/order-notifications";
+import {
+  findOrderByOrderId,
+  updateOrderByOrderId,
+} from "@/lib/data/orders";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const auth = await requireAuthenticatedUser(request);
     if (auth.error) {
       return auth.error;
@@ -22,10 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
     // Find the order
-    const order = await Order.findOne({ orderId });
+    const order = await findOrderByOrderId(orderId);
     if (!order) {
       return NextResponse.json(
         { success: false, error: "Order not found" },
@@ -76,15 +87,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status to cancelled
-    const updatedOrder = await Order.findOneAndUpdate(
-      { orderId },
-      {
-        orderStatus: "cancelled",
-        cancelReason: reason || "Customer requested cancellation",
-        cancelledAt: new Date(),
-      },
-      { new: true }
-    );
+    const updatedOrder = await updateOrderByOrderId(orderId, {
+      payment: order.payment,
+      orderStatus: "cancelled",
+      cancelReason: reason || "Customer requested cancellation",
+      cancelledAt: new Date().toISOString(),
+    });
 
     try {
       const orderOwner = await getUserById(String(order.userId || ""));
@@ -115,6 +123,12 @@ export async function POST(request: NextRequest) {
       stockErrors,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Order cancellation error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to cancel order" },

@@ -1,4 +1,5 @@
-import Product from "@/lib/models/Product";
+import { listProducts } from "@/lib/data/products";
+import type { IProduct } from "@/lib/domain/types";
 
 export interface PricedCheckoutItem {
   productId: string;
@@ -51,15 +52,15 @@ export async function buildPricedCheckoutItems(
   }
 
   const productIds = Array.from(new Set(normalized.map((item) => item.productId)));
-  const products = await Product.find({ _id: { $in: productIds }, isActive: true })
-    .select("_id name price images")
-    .lean();
+  const products = (await listProducts({ isActive: true })).filter((product) =>
+    productIds.includes(product._id.toString())
+  );
 
   if (products.length !== productIds.length) {
     return null;
   }
 
-  const productMap = new Map(
+  const productMap = new Map<string, IProduct>(
     products.map((product) => [String(product._id), product])
   );
 

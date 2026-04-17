@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Banner, { type BannerPosition } from "@/lib/models/Banner";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
 import { requireAdminUser } from "@/lib/security/auth-guards";
 import {
@@ -9,6 +7,18 @@ import {
   sanitizeName,
 } from "@/lib/security/validation";
 import { validateImageFiles } from "@/lib/security/upload";
+import {
+  createBannerRecord,
+  deleteBannerRecord,
+  findBannerById,
+  listBanners,
+  type BannerPosition,
+  updateBannerRecord,
+} from "@/lib/data/banners";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +54,9 @@ function getPublicIdFromUrl(url: string): string {
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ banners: [] });
+    }
 
     const { searchParams } = new URL(request.url);
     const position = searchParams.get("position");
@@ -62,25 +74,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid banner position" }, { status: 400 });
     }
 
-    const filter: Record<string, unknown> = {};
-    if (position) {
-      filter.position = position;
-    }
-    if (!admin) {
-      filter.isActive = true;
-    }
+    const limit = limitParam
+      ? parsePositiveInt(limitParam, 0, { min: 1, max: 50 })
+      : undefined;
+    const banners = await listBanners({
+      position: position as BannerPosition,
+      isActive: admin ? undefined : true,
+      limit,
+    });
 
-    let query = Banner.find(filter).sort({ position: 1, order: 1, createdAt: -1 });
-    if (limitParam) {
-      const limit = parsePositiveInt(limitParam, 0, { min: 1, max: 50 });
-      if (limit > 0) {
-        query = query.limit(limit);
-      }
-    }
-
-    const banners = await query.lean();
-    return NextResponse.json({ banners });
+    return NextResponse.json({
+      banners: banners.map((banner) => ({
+        _id: banner.id,
+        name: banner.name,
+        position: banner.position,
+        image: banner.image,
+        alt: banner.alt,
+        title: banner.title || undefined,
+        subtitle: banner.subtitle || undefined,
+        ctaText: banner.cta_text || undefined,
+        linkUrl: banner.link_url,
+        order: banner.order,
+        isActive: banner.is_active,
+      })),
+    });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json({ banners: [] });
+    }
     console.error("Error fetching banners:", error);
     return NextResponse.json({ error: "Failed to fetch banners" }, { status: 500 });
   }
@@ -88,12 +109,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     const formData = await request.formData();
     const name = sanitizeName(formData.get("name"));
@@ -136,7 +162,7 @@ export async function POST(request: NextRequest) {
       secure_url: string;
     };
 
-    const banner = await Banner.create({
+    const banner = await createBannerRecord({
       name,
       position,
       image: uploadResult.secure_url,
@@ -145,12 +171,33 @@ export async function POST(request: NextRequest) {
       subtitle: subtitle || undefined,
       ctaText: ctaText || undefined,
       linkUrl,
-        order,
-        isActive,
-      });
+      order,
+      isActive,
+    });
 
-    return NextResponse.json({ message: "Banner created successfully", banner });
+    return NextResponse.json({
+      message: "Banner created successfully",
+      banner: {
+        _id: banner.id,
+        name: banner.name,
+        position: banner.position,
+        image: banner.image,
+        alt: banner.alt,
+        title: banner.title || undefined,
+        subtitle: banner.subtitle || undefined,
+        ctaText: banner.cta_text || undefined,
+        linkUrl: banner.link_url,
+        order: banner.order,
+        isActive: banner.is_active,
+      },
+    });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error creating banner:", error);
     return NextResponse.json({ error: "Failed to create banner" }, { status: 500 });
   }
@@ -158,12 +205,17 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     const formData = await request.formData();
     const bannerId = formData.get("bannerId") as string;
@@ -185,7 +237,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const existingBanner = await Banner.findById(bannerId);
+    const existingBanner = await findBannerById(bannerId);
     if (!existingBanner) {
       return NextResponse.json({ error: "Banner not found" }, { status: 404 });
     }
@@ -215,28 +267,46 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const updatedBanner = await Banner.findByIdAndUpdate(
-      bannerId,
-      {
-        name,
-        position,
-        image: imageUrl,
-        alt,
-        title: title || undefined,
-        subtitle: subtitle || undefined,
-        ctaText: ctaText || undefined,
-        linkUrl,
-        order,
-        isActive,
-      },
-      { new: true, runValidators: true }
-    );
+    const updatedBanner = await updateBannerRecord(bannerId, {
+      name,
+      position,
+      image: imageUrl,
+      alt,
+      title,
+      subtitle,
+      ctaText,
+      linkUrl,
+      order,
+      isActive,
+    });
+
+    if (!updatedBanner) {
+      return NextResponse.json({ error: "Banner not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
       message: "Banner updated successfully",
-      banner: updatedBanner,
+      banner: {
+        _id: updatedBanner.id,
+        name: updatedBanner.name,
+        position: updatedBanner.position,
+        image: updatedBanner.image,
+        alt: updatedBanner.alt,
+        title: updatedBanner.title || undefined,
+        subtitle: updatedBanner.subtitle || undefined,
+        ctaText: updatedBanner.cta_text || undefined,
+        linkUrl: updatedBanner.link_url,
+        order: updatedBanner.order,
+        isActive: updatedBanner.is_active,
+      },
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating banner:", error);
     return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });
   }
@@ -244,12 +314,17 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const bannerId = searchParams.get("bannerId");
@@ -257,7 +332,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Banner ID is required" }, { status: 400 });
     }
 
-    const banner = await Banner.findById(bannerId);
+    const banner = await findBannerById(bannerId);
     if (!banner) {
       return NextResponse.json({ error: "Banner not found" }, { status: 404 });
     }
@@ -269,10 +344,16 @@ export async function DELETE(request: NextRequest) {
       console.warn("Failed to delete banner image from Cloudinary:", error);
     }
 
-    await Banner.findByIdAndDelete(bannerId);
+    await deleteBannerRecord(bannerId);
 
     return NextResponse.json({ message: "Banner deleted successfully" });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error deleting banner:", error);
     return NextResponse.json({ error: "Failed to delete banner" }, { status: 500 });
   }

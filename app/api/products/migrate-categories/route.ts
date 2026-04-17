@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { requireAdminUser } from "@/lib/security/auth-guards";
+import { listProducts, updateProductById } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +13,6 @@ export async function POST(request: NextRequest) {
       return auth.error;
     }
 
-    await connectDB();
-
     const body = await request.json();
     const { confirm } = body;
 
@@ -26,10 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find all products where category is a string (legacy shape)
-    const products = await Product.find({
-      $expr: { $eq: [{ $type: "$category" }, "string"] },
-    });
+    const products = await listProducts();
 
     console.log(
       `Found ${products.length} products with string categories to migrate`
@@ -38,19 +32,21 @@ export async function POST(request: NextRequest) {
     let migratedCount = 0;
 
     for (const product of products) {
-      if (typeof product.category === "string") {
-        // Convert string category to array
-        const categoryArray = [product.category];
+      const normalizedCategories = Array.isArray(product.category)
+        ? product.category.filter(Boolean)
+        : [];
 
-        await Product.updateOne(
-          { _id: product._id },
-          { $set: { category: categoryArray } }
-        );
+      if (normalizedCategories.length === 0) {
+        const categoryArray = ["collections"];
+
+        await updateProductById(product._id.toString(), {
+          category: categoryArray,
+        });
 
         console.log(
-          `Migrated product "${product.name}" - category: "${
-            product.category
-          }" -> [${categoryArray.join(", ")}]`
+          `Migrated product "${product.name}" - category reset to [${categoryArray.join(
+            ", "
+          )}]`
         );
         migratedCount++;
       }

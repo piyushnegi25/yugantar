@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { requireAdminUser } from "@/lib/security/auth-guards";
+import {
+  clearAllProducts,
+  createProductRecord,
+  findProductBySlug,
+  listProducts,
+  updateProductById,
+} from "@/lib/data/products";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 async function checkAdminAuth(request: NextRequest) {
   const auth = await requireAdminUser(request);
@@ -9,7 +18,23 @@ async function checkAdminAuth(request: NextRequest) {
 }
 
 // Updated sample product data with proper Cloudinary URLs for demonstration
-const sampleProductsUpdated = [
+const sampleProductsUpdated: Array<{
+  name: string;
+  slug: string;
+  description: string;
+  price?: number;
+  originalPrice?: number;
+  images: string[];
+  category?: string[];
+  tags: string[];
+  sizes?: string[];
+  colors?: string[];
+  stock: number | Record<string, number>;
+  isActive?: boolean;
+  isFeatured: boolean;
+  rating?: number;
+  reviews?: number;
+}> = [
   // Anime Products
   {
     name: "Naruto Hokage Dreams",
@@ -279,7 +304,23 @@ const sampleProductsUpdated = [
 ];
 
 // Sample product data with Cloudinary URLs (you'll need to replace these with actual Cloudinary URLs)
-const sampleProducts = [
+const sampleProducts: Array<{
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  images: string[];
+  category: string[];
+  tags: string[];
+  sizes: string[];
+  colors: string[];
+  stock: number | Record<string, number>;
+  isActive: boolean;
+  isFeatured: boolean;
+  rating: number;
+  reviews: number;
+}> = [
   // Anime Products
   {
     name: "Naruto Hokage Dreams",
@@ -551,12 +592,17 @@ const sampleProducts = [
 // POST /api/products/seed - Seed sample data (Admin only for safety)
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     // For safety, let's add a simple check
     const body = await request.json();
@@ -570,7 +616,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if products already exist
-    const existingCount = await Product.countDocuments();
+    const existingCount = (await listProducts()).length;
     if (existingCount > 0) {
       return NextResponse.json(
         {
@@ -582,7 +628,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert sample products
-    const insertedProducts = await Product.insertMany(sampleProducts);
+    const insertedProducts = [];
+    for (const product of sampleProducts) {
+      const sizes = product.sizes;
+      const stockObj: Record<string, number> =
+        typeof product.stock === "number"
+          ? Object.fromEntries(
+              (() => {
+                const sizeCount = Math.max(sizes.length, 1);
+                const stockValue = Number(product.stock);
+                return sizes.map((size) => [
+                  size,
+                  Math.max(Math.floor(stockValue / sizeCount), 0),
+                ]);
+              })()
+            )
+          : (product.stock as Record<string, number>);
+
+      const inserted = await createProductRecord({
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        images: product.images,
+        category: product.category,
+        tags: product.tags,
+        sizes: product.sizes,
+        colors: product.colors,
+        stock: stockObj,
+        isActive: product.isActive,
+        isFeatured: product.isFeatured,
+        rating: product.rating,
+        reviews: product.reviews,
+      });
+      insertedProducts.push(inserted);
+    }
 
     return NextResponse.json({
       success: true,
@@ -590,6 +671,12 @@ export async function POST(request: NextRequest) {
       products: insertedProducts.length,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error seeding products:", error);
     return NextResponse.json(
       { error: "Failed to seed products" },
@@ -601,12 +688,17 @@ export async function POST(request: NextRequest) {
 // DELETE /api/products/seed - Clear all products (for testing)
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     const body = await request.json();
     const { confirm } = body;
@@ -618,14 +710,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const result = await Product.deleteMany({});
+    const deletedCount = await clearAllProducts();
 
     return NextResponse.json({
       success: true,
-      message: `Deleted ${result.deletedCount} products`,
-      deletedCount: result.deletedCount,
+      message: `Deleted ${deletedCount} products`,
+      deletedCount,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error clearing products:", error);
     return NextResponse.json(
       { error: "Failed to clear products" },
@@ -637,12 +735,17 @@ export async function DELETE(request: NextRequest) {
 // PUT /api/products/seed - Update existing products with better images
 export async function PUT(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const authResult = await checkAdminAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-
-    await connectDB();
 
     const body = await request.json();
     const { confirm } = body;
@@ -657,27 +760,31 @@ export async function PUT(request: NextRequest) {
     let updatedCount = 0;
 
     for (const productData of sampleProductsUpdated) {
-      const existingProduct = await Product.findOne({ slug: productData.slug });
+      const existingProduct = await findProductBySlug(productData.slug);
 
       if (existingProduct) {
-        existingProduct.images = productData.images;
-        existingProduct.description = productData.description;
-        existingProduct.tags = productData.tags;
-        // Convert number stock to size-specific stock if needed
+        let updatedStock: Record<string, number>;
         if (typeof productData.stock === "number") {
+          const sizeCount = Math.max(existingProduct.sizes.length, 1);
           const stockPerSize = Math.floor(
-            productData.stock / existingProduct.sizes.length
+            productData.stock / sizeCount
           );
           const stockObj: { [size: string]: number } = {};
           existingProduct.sizes.forEach((size) => {
             stockObj[size] = stockPerSize;
           });
-          existingProduct.stock = stockObj;
+          updatedStock = stockObj;
         } else {
-          existingProduct.stock = productData.stock;
+          updatedStock = productData.stock;
         }
-        existingProduct.isFeatured = productData.isFeatured;
-        await existingProduct.save();
+
+        await updateProductById(existingProduct._id.toString(), {
+          images: productData.images,
+          description: productData.description,
+          tags: productData.tags,
+          stock: updatedStock,
+          isFeatured: productData.isFeatured,
+        });
         updatedCount++;
       }
     }
@@ -688,6 +795,12 @@ export async function PUT(request: NextRequest) {
       updatedCount,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating products:", error);
     return NextResponse.json(
       { error: "Failed to update products" },

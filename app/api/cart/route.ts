@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Cart, { type ICartItem } from "@/lib/models/Cart";
 import { getUserFromToken } from "@/lib/auth";
+import {
+  createCart,
+  findCartBySessionId,
+  findCartByUserId,
+  type CartItemRecord,
+  updateCartById,
+} from "@/lib/data/carts";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/cart - Get cart items
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ items: [], totalItems: 0 });
+    }
 
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId");
@@ -30,32 +41,35 @@ export async function GET(request: NextRequest) {
 
     if (userId) {
       // Look for user cart first
-      cart = await Cart.findOne({ userId });
+      cart = await findCartByUserId(userId);
 
       // If user has no cart but has session cart, migrate it
       if (!cart && sessionId) {
-        const sessionCart = await Cart.findOne({ sessionId });
+        const sessionCart = await findCartBySessionId(sessionId);
         if (sessionCart) {
-          sessionCart.userId = userId;
-          sessionCart.sessionId = null;
-          await sessionCart.save();
-          cart = sessionCart;
+          cart = await updateCartById(sessionCart.id, {
+            userId,
+            sessionId: null,
+          });
         }
       }
     } else if (sessionId) {
       // Guest user
-      cart = await Cart.findOne({ sessionId });
+      cart = await findCartBySessionId(sessionId);
     }
 
     return NextResponse.json({
       items: cart?.items || [],
       totalItems:
         cart?.items.reduce(
-          (sum: number, item: ICartItem) => sum + item.quantity,
+          (sum: number, item: CartItemRecord) => sum + item.quantity,
           0
         ) || 0,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json({ items: [], totalItems: 0 });
+    }
     console.error("Error fetching cart:", error);
     return NextResponse.json(
       { error: "Failed to fetch cart" },
@@ -67,10 +81,15 @@ export async function GET(request: NextRequest) {
 // POST /api/cart - Update cart items
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
 
     const body = await request.json();
-    const { items, sessionId }: { items: ICartItem[]; sessionId: string } =
+    const { items, sessionId }: { items: CartItemRecord[]; sessionId: string } =
       body;
 
     if (!Array.isArray(items)) {
@@ -122,24 +141,25 @@ export async function POST(request: NextRequest) {
 
     if (userId) {
       // Find or create user cart
-      cart = await Cart.findOne({ userId });
+      cart = await findCartByUserId(userId);
       if (!cart) {
-        cart = new Cart({ userId, items: [] });
+        cart = await createCart({ userId, items: [] });
       }
 
       // Migrate session cart if exists
       if (sessionId) {
-        const sessionCart = await Cart.findOne({ sessionId });
+        const sessionCart = await findCartBySessionId(sessionId);
         if (sessionCart && !cart.items.length) {
-          cart.items = sessionCart.items;
-          await Cart.deleteOne({ sessionId });
+          cart =
+            (await updateCartById(cart.id, { items: sessionCart.items })) || cart;
+          await updateCartById(sessionCart.id, { items: [], sessionId: null });
         }
       }
     } else if (sessionId) {
       // Guest user
-      cart = await Cart.findOne({ sessionId });
+      cart = await findCartBySessionId(sessionId);
       if (!cart) {
-        cart = new Cart({ sessionId, items: [] });
+        cart = await createCart({ sessionId, items: [] });
       }
     } else {
       return NextResponse.json(
@@ -149,18 +169,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Update cart items
-    cart.items = items;
-    await cart.save();
+    cart = (await updateCartById(cart.id, { items })) || cart;
 
     return NextResponse.json({
       success: true,
       items: cart.items,
       totalItems: cart.items.reduce(
-        (sum: number, item: ICartItem) => sum + item.quantity,
+        (sum: number, item: CartItemRecord) => sum + item.quantity,
         0
       ),
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating cart:", error);
     return NextResponse.json(
       { error: "Failed to update cart" },
@@ -172,7 +197,9 @@ export async function POST(request: NextRequest) {
 // DELETE /api/cart - Clear cart
 export async function DELETE(request: NextRequest) {
   try {
-    await connectDB();
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ success: true });
+    }
 
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId");
@@ -191,13 +218,22 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (userId) {
-      await Cart.findOneAndUpdate({ userId }, { items: [] });
+      const cart = await findCartByUserId(userId);
+      if (cart) {
+        await updateCartById(cart.id, { items: [] });
+      }
     } else if (sessionId) {
-      await Cart.findOneAndUpdate({ sessionId }, { items: [] });
+      const cart = await findCartBySessionId(sessionId);
+      if (cart) {
+        await updateCartById(cart.id, { items: [] });
+      }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json({ success: true });
+    }
     console.error("Error clearing cart:", error);
     return NextResponse.json(
       { error: "Failed to clear cart" },

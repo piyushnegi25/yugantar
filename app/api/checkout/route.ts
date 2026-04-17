@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import connectDB from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
 import { validateStock } from "@/lib/stock-utils";
 import { v4 as uuidv4 } from "uuid";
 import { requireAuthenticatedUser } from "@/lib/security/auth-guards";
@@ -10,6 +8,11 @@ import {
   computeOrderTotals,
 } from "@/lib/services/pricing";
 import { sendNewOrderEmails } from "@/lib/email/order-notifications";
+import { createOrderRecord } from "@/lib/data/orders";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 function hasValidAddress(address: unknown) {
   if (!address || typeof address !== "object") {
@@ -35,6 +38,13 @@ function hasValidAddress(address: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
+
     const auth = await requireAuthenticatedUser(request);
     if (auth.error) {
       return auth.error;
@@ -67,8 +77,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
-    await connectDB();
 
     const { subtotal, shipping, total } = computeOrderTotals(pricedItems);
 
@@ -114,7 +122,7 @@ export async function POST(request: NextRequest) {
     const orderId = `ORD-${Date.now()}-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     // Create order in database
-    const order = new Order({
+    await createOrderRecord({
       userId: auth.user._id.toString(),
       orderId,
       items: pricedItems,
@@ -130,8 +138,6 @@ export async function POST(request: NextRequest) {
       shipping,
       total,
     });
-
-    await order.save();
 
     try {
       await sendNewOrderEmails({
@@ -160,6 +166,12 @@ export async function POST(request: NextRequest) {
       orderId,
     });
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured" },
+        { status: 503 }
+      );
+    }
     console.error("Razorpay order creation error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create order" },

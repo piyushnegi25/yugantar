@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
 import { requireAdminUser } from "@/lib/security/auth-guards";
+import {
+  countProducts,
+  findProductBySlug,
+  listProducts,
+} from "@/lib/data/products";
+import {
+  isSupabaseConfigured,
+  SupabaseConfigError,
+} from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/products - Get all products with optional filtering
 export async function GET(request: NextRequest) {
   try {
+    if (!isSupabaseConfigured()) {
+      if (new URL(request.url).searchParams.get("slug")) {
+        return NextResponse.json({ product: null }, { status: 404 });
+      }
+
+      return NextResponse.json({ products: [], total: 0, page: 1, limit: 0 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const isFeatured = searchParams.get("isFeatured");
@@ -24,55 +39,33 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    await connectDB();
-
     const parsedLimit = Number.parseInt(limitParam || "", 10);
     const parsedPage = Number.parseInt(pageParam || "", 10);
     const hasValidLimit = Number.isFinite(parsedLimit) && parsedLimit > 0;
     const hasValidPage = Number.isFinite(parsedPage) && parsedPage > 0;
 
-    // Build filter object
-    const filter: any = {};
+    const isFeaturedFilter =
+      isFeatured !== null && isFeatured !== "" ? isFeatured === "true" : undefined;
+    const isActiveFilter = admin
+      ? isActive !== null && isActive !== ""
+        ? isActive === "true"
+        : undefined
+      : isActive !== null && isActive !== ""
+        ? isActive === "true"
+        : true;
 
-    if (category) {
-      filter.category = { $in: [category] };
-    }
-
-    if (slug) {
-      filter.slug = slug;
-    }
-
-    if (isFeatured !== null && isFeatured !== "") {
-      filter.isFeatured = isFeatured === "true";
-    }
-
-    // For admin requests, include both active and inactive products
-    if (admin) {
-      // Don't filter by isActive for admin requests
-    } else if (isActive !== null && isActive !== "") {
-      filter.isActive = isActive === "true";
-    } else {
-      // Default to only active products unless explicitly requested
-      filter.isActive = true;
-    }
-
-    // Build query
-    let query = Product.find(filter).sort({ createdAt: -1 });
-
-    // Apply pagination if specified
-    if (hasValidLimit) {
-      query = query.limit(parsedLimit);
-    }
-
-    if (hasValidPage && hasValidLimit) {
-      const skip = (parsedPage - 1) * parsedLimit;
-      query = query.skip(skip);
-    }
-
-    const products = await query.exec();
+    const products = slug
+      ? []
+      : await listProducts({
+          category: category || undefined,
+          isFeatured: isFeaturedFilter,
+          isActive: isActiveFilter,
+          limit: hasValidLimit ? parsedLimit : undefined,
+          page: hasValidPage ? parsedPage : undefined,
+        });
 
     if (slug) {
-      const single = products[0] || null;
+      const single = await findProductBySlug(slug);
       return NextResponse.json(
         { product: single },
         {
@@ -87,7 +80,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total count for pagination
-    const total = await Product.countDocuments(filter);
+    const total = await countProducts({
+      category: category || undefined,
+      isFeatured: isFeaturedFilter,
+      isActive: isActiveFilter,
+    });
 
     return NextResponse.json(
       {
@@ -105,6 +102,9 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      return NextResponse.json({ products: [], total: 0, page: 1, limit: 0 });
+    }
     console.error("Error fetching products:", error);
     return NextResponse.json(
       { error: "Failed to fetch products" },
