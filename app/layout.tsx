@@ -1,6 +1,6 @@
 import type React from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat, Sora } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CombinedProviders } from "@/components/providers";
@@ -16,10 +16,16 @@ import {
   generateWebsiteStructuredData,
 } from "@/lib/seo";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-montserrat",
+});
+
+const sora = Sora({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sora",
 });
 
 export const metadata: Metadata = createMetadata({
@@ -122,7 +128,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} ${inter.variable}`}>
+      <body className={`${montserrat.variable} ${sora.variable} font-body`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

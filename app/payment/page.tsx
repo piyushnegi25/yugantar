@@ -35,11 +35,11 @@ function PaymentContent() {
   }, [router, isFailure]);
 
   return (
-    <div className="min-h-screen bg-gray-50  transition-colors">
+    <div className="min-h-screen bg-background transition-colors">
       <SiteHeader />
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <Card className="bg-white  border-gray-200  text-center">
+      <div className="app-shell mx-auto max-w-2xl py-16">
+        <Card className="surface-card text-center">
           <CardContent className="p-8">
             {isFailure ? (
               <>
@@ -47,24 +47,24 @@ function PaymentContent() {
                   <XCircle className="w-16 h-16 text-red-500" />
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900  mb-4">
+                <h1 className="mb-4 text-3xl font-extrabold lowercase text-foreground">
                   Payment Failed
                 </h1>
 
-                <p className="text-gray-600  mb-6">
+                <p className="mb-6 text-muted-foreground">
                   We're sorry, but your payment could not be processed. Please
                   try again.
                 </p>
 
                 {orderId && (
-                  <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4">
                     <div className="flex items-center justify-center space-x-2 mb-2">
                       <AlertTriangle className="w-5 h-5 text-red-500" />
-                      <p className="text-sm font-medium text-red-800 ">
+                      <p className="text-sm font-medium text-red-800">
                         Order ID: {orderId}
                       </p>
                     </div>
-                    <p className="text-sm text-red-600 ">
+                    <p className="text-sm text-red-600">
                       This order has been marked as failed. You can try placing
                       the order again.
                     </p>
@@ -72,10 +72,10 @@ function PaymentContent() {
                 )}
 
                 <div className="space-y-4 mb-8">
-                  <p className="text-sm text-gray-500 ">
+                  <p className="text-sm text-muted-foreground">
                     Common reasons for payment failure:
                   </p>
-                  <ul className="text-sm text-gray-600  space-y-1">
+                  <ul className="space-y-1 text-sm text-muted-foreground">
                     <li>• Insufficient funds in your account</li>
                     <li>• Network connectivity issues</li>
                     <li>• Bank server maintenance</li>
@@ -84,13 +84,13 @@ function PaymentContent() {
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600 ">
+                  <p className="text-sm text-muted-foreground">
                     Redirecting to cart in {countdown} seconds...
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link href="/checkout">
-                      <Button className="w-full bg-gray-900 hover:bg-gray-800 sm:w-auto">
+                      <Button className="cta-pill-primary w-full sm:w-auto">
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Try Again
                       </Button>
@@ -107,13 +107,13 @@ function PaymentContent() {
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-bold text-gray-900  mb-4">
+                <h1 className="mb-4 text-3xl font-extrabold lowercase text-foreground">
                   Payment Status
                 </h1>
-                <p className="text-gray-600 ">
+                <p className="text-muted-foreground">
                   Checking payment status...
                 </p>
-                <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mt-4"></div>
+                <div className="mx-auto mt-4 h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
               </>
             )}
           </CardContent>
@@ -127,8 +127,8 @@ export default function PaymentPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
         </div>
       }
     >

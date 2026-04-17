@@ -34,22 +34,22 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 ">Loading cart...</p>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground">Loading cart...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50  transition-colors">
+    <div className="min-h-screen bg-background transition-colors">
       <SiteHeader />
 
-      <div className="border-b border-gray-200 bg-white">
-        <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
+      <div className="app-shell pt-4">
+        <div className="section-shell flex h-14 items-center justify-between px-4 sm:px-6">
+          <Badge variant="secondary" className="rounded-full bg-accent/70 text-foreground">
             Shopping Cart
           </Badge>
           <Link href="/">
@@ -62,22 +62,18 @@ export default function CartPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="app-shell py-8">
         {items.length === 0 ? (
-          // Empty Cart
-          <div className="text-center py-16">
-            <ShoppingBag className="w-24 h-24 text-gray-300  mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900  mb-4">
+          <div className="section-shell py-16 text-center">
+            <ShoppingBag className="mx-auto mb-6 h-24 w-24 text-muted-foreground/40" />
+            <h2 className="mb-4 text-2xl font-extrabold lowercase text-foreground">
               Your cart is empty
             </h2>
-            <p className="text-gray-600  mb-8">
+            <p className="mb-8 text-muted-foreground">
               Looks like you haven't added any items to your cart yet.
             </p>
             <Link href="/">
-              <Button
-                size="lg"
-                className="bg-gray-900 hover:bg-gray-800"
-              >
+              <Button size="lg" className="cta-pill-primary px-8">
                 Start Shopping
               </Button>
             </Link>
@@ -87,7 +83,7 @@ export default function CartPage() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 ">
+                <h1 className="text-2xl font-extrabold lowercase text-foreground">
                   Shopping Cart ({items.length}{" "}
                   {items.length === 1 ? "item" : "items"})
                 </h1>
@@ -95,7 +91,7 @@ export default function CartPage() {
                   onClick={clearCart}
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
                   Clear Cart
                 </Button>
@@ -104,11 +100,11 @@ export default function CartPage() {
               {items.map((item) => (
                 <Card
                   key={item.id}
-                  className="bg-white  border-gray-200 "
+                  className="surface-card"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      <div className="relative w-24 h-24 bg-gray-100  rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-muted">
                         <Image
                           src={item.image || "/placeholder.svg"}
                           alt={item.name}
@@ -120,7 +116,7 @@ export default function CartPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 ">
+                            <h3 className="text-lg font-semibold text-foreground">
                               {item.name}
                             </h3>
                             {item.category && (
@@ -128,7 +124,7 @@ export default function CartPage() {
                                 {item.category}
                               </Badge>
                             )}
-                            <div className="mt-2 text-sm text-gray-600 ">
+                            <div className="mt-2 text-sm text-muted-foreground">
                               <span>Color: {item.color}</span>
                               <span className="mx-2">•</span>
                               <span>Size: {item.size}</span>
@@ -138,7 +134,7 @@ export default function CartPage() {
                             onClick={() => removeFromCart(item.id)}
                             variant="ghost"
                             size="sm"
-                            className="text-gray-400 hover:text-red-500"
+                            className="text-muted-foreground hover:text-red-500"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -151,12 +147,12 @@ export default function CartPage() {
                                 updateQuantity(item.id, item.quantity - 1)
                               }
                               variant="outline"
-                              size="sm"
-                              className="w-8 h-8 p-0"
+                              size="icon"
+                              className="h-8 w-8 p-0"
                             >
                               <Minus className="w-3 h-3" />
                             </Button>
-                            <span className="text-gray-900  font-medium w-8 text-center">
+                            <span className="w-8 text-center font-medium text-foreground">
                               {item.quantity}
                             </span>
                             <Button
@@ -164,17 +160,17 @@ export default function CartPage() {
                                 updateQuantity(item.id, item.quantity + 1)
                               }
                               variant="outline"
-                              size="sm"
-                              className="w-8 h-8 p-0"
+                              size="icon"
+                              className="h-8 w-8 p-0"
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900 ">
+                            <div className="text-lg font-bold text-foreground">
                               ₹{(item.price * item.quantity).toFixed(2)}
                             </div>
-                            <div className="text-sm text-gray-500 ">
+                            <div className="text-sm text-muted-foreground">
                               ₹{item.price.toFixed(2)} each
                             </div>
                           </div>
@@ -188,27 +184,27 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <Card className="bg-white  border-gray-200  sticky top-8">
+              <Card className="surface-card sticky top-8">
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900  mb-6">
+                  <h2 className="mb-6 text-xl font-extrabold lowercase text-foreground">
                     Order Summary
                   </h2>
 
                   <div className="space-y-4">
-                    <div className="flex justify-between text-gray-600 ">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span>
                       <span>₹{subtotal.toFixed(2)}</span>
                     </div>
 
-                    <div className="flex justify-between text-gray-600 ">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Shipping</span>
                       <span>
                         {shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}
                       </span>
                     </div>
 
-                    <div className="border-t border-gray-200  pt-4">
-                      <div className="flex justify-between text-lg font-bold text-gray-900 ">
+                    <div className="border-t border-border pt-4">
+                      <div className="flex justify-between text-lg font-bold text-foreground">
                         <span>Total</span>
                         <span>₹{total.toFixed(2)}</span>
                       </div>
@@ -216,8 +212,8 @@ export default function CartPage() {
                   </div>
 
                   {shipping > 0 && (
-                    <div className="mt-4 rounded-lg bg-blue-50 p-3">
-                      <p className="text-sm text-blue-700 ">
+                    <div className="mt-4 rounded-2xl bg-accent/35 p-3">
+                      <p className="text-sm text-foreground/90">
                         Add ₹{(1199 - subtotal).toFixed(2)} more for free
                         shipping!
                       </p>
@@ -225,20 +221,17 @@ export default function CartPage() {
                   )}
 
                   <Link href="/checkout">
-                    <Button
-                      size="lg"
-                      className="mt-6 w-full bg-gray-900 hover:bg-gray-800"
-                    >
+                    <Button size="lg" className="cta-pill-primary mt-6 w-full justify-center">
                       Proceed to Checkout
                     </Button>
                   </Link>
 
                   <div className="mt-6 space-y-3">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 ">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <Truck className="w-4 h-4" />
                       <span>Free shipping on orders over ₹1199</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 ">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <Shield className="w-4 h-4" />
                       <span>Money back if order cancelled before 7 days</span>
                     </div>

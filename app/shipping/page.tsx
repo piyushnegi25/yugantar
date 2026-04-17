@@ -40,7 +40,7 @@ export default function ShippingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <SiteHeader currentPath="/shipping" />
       <script
         type="application/ld+json"
@@ -49,47 +49,47 @@ export default function ShippingPage() {
         }}
       />
 
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="app-shell py-6 sm:py-8">
+        <div className="section-shell px-5 py-10 sm:px-6 sm:py-12">
+          <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
             Shipping Information
           </h1>
-          <p className="mt-4 max-w-3xl text-gray-600">
+          <p className="mt-4 max-w-3xl text-muted-foreground">
             We ship Yugantar t-shirts across India with reliable courier partners.
             Timelines vary by city tier and product type.
           </p>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
+      <section className="app-shell py-2 pb-10 sm:pb-12">
         <div className="grid gap-6 md:grid-cols-2">
-          <article className="rounded-lg border border-gray-200 p-5">
-            <h2 className="text-xl font-semibold text-gray-900">Dispatch Time</h2>
-            <p className="mt-2 text-gray-700">
+          <article className="surface-card p-5">
+            <h2 className="text-xl font-semibold lowercase text-foreground">Dispatch Time</h2>
+            <p className="mt-2 text-foreground/80">
               Most ready designs are dispatched within 24-48 hours. Custom
               printed t-shirts may require extra production time.
             </p>
           </article>
 
-          <article className="rounded-lg border border-gray-200 p-5">
-            <h2 className="text-xl font-semibold text-gray-900">Delivery ETA</h2>
-            <p className="mt-2 text-gray-700">
+          <article className="surface-card p-5">
+            <h2 className="text-xl font-semibold lowercase text-foreground">Delivery ETA</h2>
+            <p className="mt-2 text-foreground/80">
               Metro cities: 3-7 business days. Non-metro regions: 5-10 business
               days after dispatch.
             </p>
           </article>
 
-          <article className="rounded-lg border border-gray-200 p-5">
-            <h2 className="text-xl font-semibold text-gray-900">Tracking</h2>
-            <p className="mt-2 text-gray-700">
+          <article className="surface-card p-5">
+            <h2 className="text-xl font-semibold lowercase text-foreground">Tracking</h2>
+            <p className="mt-2 text-foreground/80">
               Tracking details are shared after shipment pickup. You can use the
               tracking link from your order communication.
             </p>
           </article>
 
-          <article className="rounded-lg border border-gray-200 p-5">
-            <h2 className="text-xl font-semibold text-gray-900">Support</h2>
-            <p className="mt-2 text-gray-700">
+          <article className="surface-card p-5">
+            <h2 className="text-xl font-semibold lowercase text-foreground">Support</h2>
+            <p className="mt-2 text-foreground/80">
               If your parcel is delayed, contact support@yugantar.studio with your
               order details for quick help.
             </p>

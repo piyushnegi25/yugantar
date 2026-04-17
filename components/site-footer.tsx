@@ -2,67 +2,89 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border bg-background py-12 sm:py-16">
-      <div className="container mx-auto flex max-w-screen-2xl flex-col items-center text-center">
-        <h3 className="mb-4 text-3xl font-black uppercase tracking-tighter text-foreground sm:text-4xl">
-          YUGANTAR
-        </h3>
-        <p className="mb-8 text-xs uppercase tracking-widest text-muted-foreground sm:mb-10 sm:text-sm">
-          Till End of the Era.
-        </p>
-        <div className="grid w-full max-w-[360px] grid-cols-2 justify-center gap-x-4 gap-y-3 text-sm font-medium text-muted-foreground sm:max-w-none sm:flex sm:flex-wrap sm:justify-center sm:gap-8 sm:mb-10">
-          <Link href="/about" className="transition-colors hover:text-primary">
-            About
-          </Link>
-          <Link href="/contact" className="transition-colors hover:text-primary">
-            Contact
-          </Link>
-          <Link href="/faq" className="transition-colors hover:text-primary">
-            FAQ
-          </Link>
-          <Link href="/shipping" className="transition-colors hover:text-primary">
-            Shipping
-          </Link>
-          <Link
-            href="/tshirt-brands-india"
-            className="transition-colors hover:text-primary"
-          >
-            Best Brands
-          </Link>
-          <Link
-            href="/oversized-tshirts-india"
-            className="transition-colors hover:text-primary"
-          >
-            Oversized
-          </Link>
-          <Link
-            href="/anime-tshirts-india"
-            className="transition-colors hover:text-primary"
-          >
-            Anime Tees
-          </Link>
-          <Link
-            href="/graphic-tshirts-india"
-            className="transition-colors hover:text-primary"
-          >
-            Graphic Tees
-          </Link>
-          <Link
-            href="/streetwear-tshirts-india"
-            className="transition-colors hover:text-primary"
-          >
-            Streetwear
-          </Link>
-          <Link
-            href="/funny-meme-tshirts-india"
-            className="transition-colors hover:text-primary"
-          >
-            Funny Memes
-          </Link>
+    <footer className="app-shell mt-16 pb-6 pt-10 sm:mt-20">
+      <div className="section-shell px-5 py-8 sm:px-8 sm:py-10">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h3 className="text-2xl font-black uppercase tracking-[0.15em] text-foreground sm:text-3xl">
+              Yugantar
+            </h3>
+            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+              Till End of the Era. Premium statement tees built for everyday expression.
+            </p>
+            <p className="mt-4 text-sm font-medium text-foreground">support@yugantar.com</p>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.12em] text-foreground">Menu</h4>
+            <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+              <Link href="/" className="transition-colors hover:text-primary">
+                Home
+              </Link>
+              <Link href="/collections" className="transition-colors hover:text-primary">
+                Store
+              </Link>
+              <Link href="/about" className="transition-colors hover:text-primary">
+                About
+              </Link>
+              <Link href="/contact" className="transition-colors hover:text-primary">
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.12em] text-foreground">Quick Links</h4>
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground sm:grid-cols-1">
+              <Link href="/faq" className="transition-colors hover:text-primary">
+                FAQ
+              </Link>
+              <Link href="/shipping" className="transition-colors hover:text-primary">
+                Shipping
+              </Link>
+              <Link href="/profile" className="transition-colors hover:text-primary">
+                Account
+              </Link>
+              <Link href="/orders" className="transition-colors hover:text-primary">
+                Orders
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.12em] text-foreground">Explore</h4>
+            <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+              <Link
+                href="/oversized-tshirts-india"
+                className="transition-colors hover:text-primary"
+              >
+                Oversized
+              </Link>
+              <Link
+                href="/anime-tshirts-india"
+                className="transition-colors hover:text-primary"
+              >
+                Anime Tees
+              </Link>
+              <Link
+                href="/graphic-tshirts-india"
+                className="transition-colors hover:text-primary"
+              >
+                Graphic Tees
+              </Link>
+              <Link
+                href="/streetwear-tshirts-india"
+                className="transition-colors hover:text-primary"
+              >
+                Streetwear
+              </Link>
+            </div>
+          </div>
         </div>
-        <p className="px-4 text-[11px] text-muted-foreground/60 sm:text-xs">
+
+        <div className="mt-8 rounded-2xl border border-border/80 bg-background px-4 py-3 text-center text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} YUGANTAR. All rights reserved.
-        </p>
+        </div>
       </div>
     </footer>
   );

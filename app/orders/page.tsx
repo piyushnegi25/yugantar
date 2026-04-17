@@ -150,10 +150,10 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 ">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground">
             Loading your orders...
           </p>
         </div>
@@ -163,33 +163,33 @@ export default function OrdersPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 ">Loading your orders...</p>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground">Loading your orders...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50  transition-colors">
+    <div className="min-h-screen bg-background transition-colors">
       <SiteHeader />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="app-shell mx-auto max-w-4xl py-8">
         {orders.length === 0 ? (
-          <Card className="bg-white  border-gray-200  text-center">
+          <Card className="surface-card text-center">
             <CardContent className="p-12">
-              <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold text-gray-900  mb-2">
+              <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+              <h2 className="mb-2 text-2xl font-extrabold lowercase text-foreground">
                 No Orders Yet
               </h2>
-              <p className="text-gray-600  mb-6">
+              <p className="mb-6 text-muted-foreground">
                 You haven't placed any orders yet. Start shopping to see your
                 orders here.
               </p>
               <Link href="/">
-                <Button className="bg-gray-900 hover:bg-gray-800">
+                <Button className="cta-pill-primary">
                   Start Shopping
                 </Button>
               </Link>
@@ -211,15 +211,15 @@ export default function OrdersPage() {
               return (
                 <Card
                   key={order._id}
-                  className="bg-white  border-gray-200 "
+                  className="surface-card"
                 >
-                  <CardHeader className="border-b border-gray-200 ">
+                  <CardHeader className="border-b border-border">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                       <div className="space-y-1">
-                        <CardTitle className="text-lg">
+                        <CardTitle className="text-lg font-extrabold lowercase">
                           Order {order.orderId}
                         </CardTitle>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 ">
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4" />
                           <span>
                             {new Date(order.createdAt).toLocaleDateString()}
@@ -234,10 +234,10 @@ export default function OrdersPage() {
                           <span>{statusLabel}</span>
                         </Badge>
                         <div className="text-right">
-                          <p className="text-sm text-gray-600 ">
+                          <p className="text-sm text-muted-foreground">
                             Total
                           </p>
-                          <p className="font-semibold text-gray-900 ">
+                          <p className="font-semibold text-foreground">
                             ₹{order.total.toFixed(2)}
                           </p>
                         </div>
@@ -248,16 +248,16 @@ export default function OrdersPage() {
                   <CardContent className="p-6">
                     {/* Order Items */}
                     <div className="space-y-4 mb-6">
-                      <h3 className="font-medium text-gray-900 ">
+                      <h3 className="font-medium text-foreground">
                         Items Ordered
                       </h3>
                       <div className="space-y-3">
                         {order.items.map((item, index) => (
                           <div
                             key={index}
-                            className="flex items-center space-x-4 p-3 bg-gray-50  rounded-lg"
+                            className="flex items-center space-x-4 rounded-2xl bg-muted/50 p-3"
                           >
-                            <div className="w-16 h-16 bg-gray-200  rounded-md flex-shrink-0">
+                            <div className="h-16 w-16 flex-shrink-0 rounded-xl bg-muted">
                               {item.image && (
                                 <Image
                                   src={item.image}
@@ -269,15 +269,15 @@ export default function OrdersPage() {
                               )}
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-medium text-gray-900 ">
+                              <h4 className="font-medium text-foreground">
                                 {item.title}
                               </h4>
-                              <p className="text-sm text-gray-600 ">
+                              <p className="text-sm text-muted-foreground">
                                 Size: {item.size} • Quantity: {item.quantity}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="font-medium text-gray-900 ">
+                              <p className="font-medium text-foreground">
                                 ₹{(item.price * item.quantity).toFixed(2)}
                               </p>
                             </div>
@@ -287,12 +287,12 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Delivery Address */}
-                    <div className="border-t border-gray-200  pt-4">
-                      <h3 className="font-medium text-gray-900  mb-2">
+                    <div className="border-t border-border pt-4">
+                      <h3 className="mb-2 font-medium text-foreground">
                         Delivery Address
                       </h3>
-                      <div className="text-sm text-gray-600 ">
-                        <p className="font-medium text-gray-900 ">
+                      <div className="text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground">
                           {order.address.fullName}
                         </p>
                         <p>{order.address.addressLine1}</p>

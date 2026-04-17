@@ -603,10 +603,10 @@ export default function CheckoutPage() {
   if (!user || items.length === 0) {
     if (!authChecked || items.length === 0) {
       return (
-        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 ">Preparing checkout...</p>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-muted-foreground">Preparing checkout...</p>
           </div>
         </div>
       );
@@ -616,27 +616,27 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50  transition-colors">
+    <div className="min-h-screen bg-background transition-colors">
       <SiteHeader />
 
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="app-shell pt-4">
+        <div className="section-shell mx-auto flex h-14 w-full items-center justify-between px-4 sm:px-6">
           <Link
             href="/cart"
-            className="flex items-center space-x-2 text-gray-600 transition-colors hover:text-gray-900"
+            className="flex items-center space-x-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Cart</span>
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Checkout</h1>
+          <h1 className="text-xl font-extrabold lowercase text-foreground">Checkout</h1>
           <div className="w-[120px]" aria-hidden="true" />
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="app-shell mx-auto max-w-5xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Address Form */}
-          <Card className="bg-white  border-gray-200 ">
+          <Card className="surface-card">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5" />
@@ -656,9 +656,9 @@ export default function CheckoutPage() {
                         key={`${savedAddress.lastUsedAt}-${savedAddress.pinCode}`}
                         type="button"
                         onClick={() => applySavedAddress(savedAddress)}
-                        className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs text-gray-700 transition-colors hover:bg-gray-100"
+                        className="w-full rounded-2xl border border-border bg-muted/50 px-3 py-2 text-left text-xs text-foreground/90 transition-colors hover:bg-muted"
                       >
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {savedAddress.fullName}
                         </p>
                         <p>
@@ -726,7 +726,7 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">City *</Label>
                   <Input
@@ -815,7 +815,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="flex items-end">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {isPinLookupLoading
                       ? "Fetching location from PIN code..."
                       : pinLookupMessage}
@@ -827,9 +827,9 @@ export default function CheckoutPage() {
           </Card>
 
           {/* Order Summary */}
-          <Card className="bg-white  border-gray-200 ">
+          <Card className="surface-card">
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle className="text-2xl font-extrabold lowercase">Order Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Items */}
@@ -856,7 +856,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{item.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Size: {item.size} • Qty: {item.quantity}
                       </p>
                     </div>
@@ -867,7 +867,7 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <hr className="border-gray-200 " />
+              <hr className="border-border" />
 
               {/* Pricing */}
               <div className="space-y-2">
@@ -881,7 +881,7 @@ export default function CheckoutPage() {
                     {shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}
                   </span>
                 </div>
-                <hr className="border-gray-200 " />
+                <hr className="border-border" />
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
                   <span>₹{total.toFixed(2)}</span>
@@ -891,7 +891,7 @@ export default function CheckoutPage() {
               <Button
                 onClick={handlePayment}
                 disabled={isLoading || !isAddressValid}
-                className="w-full bg-gray-900 hover:bg-gray-800"
+                className="cta-pill-primary w-full justify-center"
                 size="lg"
               >
                 {isLoading ? (

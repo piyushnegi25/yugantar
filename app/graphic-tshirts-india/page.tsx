@@ -40,44 +40,46 @@ export default function GraphicTshirtsIndiaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <SiteHeader currentPath="/graphic-tshirts-india" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="app-shell py-6 sm:py-8">
+        <div className="section-shell px-5 py-10 sm:px-6 sm:py-12">
+          <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
             Graphic T-Shirts Online in India
           </h1>
-          <p className="mt-4 max-w-3xl text-gray-600">
+          <p className="mt-4 max-w-3xl text-muted-foreground">
             Discover expressive graphic t-shirts built for modern streetwear and
             everyday styling. From anime references to meme-driven visuals,
             Yugantar offers premium printed tees with comfort-first quality.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/collections">
-              <Button>Shop Graphic Tees</Button>
+              <Button className="cta-pill-primary px-6">Shop Graphic Tees</Button>
             </Link>
             <Link href="/oversized-tshirts-india">
-              <Button variant="outline">Oversized Fits</Button>
+              <Button variant="outline" className="cta-pill px-6">Oversized Fits</Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900">
+      <section className="app-shell py-4 pb-12 sm:py-6 sm:pb-14">
+        <div className="section-shell px-5 py-7 sm:px-6">
+        <h2 className="text-2xl font-semibold lowercase text-foreground">
           Graphic Tee Buying Checklist
         </h2>
-        <ul className="mt-4 space-y-3 text-gray-700">
+        <ul className="mt-4 space-y-3 text-foreground/80">
           <li>Choose breathable, skin-friendly fabrics for long wear.</li>
           <li>Look for colorfast prints that hold up after washes.</li>
           <li>Pick fit type (regular or oversized) based on styling goal.</li>
           <li>Match visual themes with your wardrobe basics.</li>
         </ul>
+        </div>
       </section>
     </main>
   );

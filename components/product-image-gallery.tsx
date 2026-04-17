@@ -23,7 +23,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
 
   return (
     <div className="grid gap-3">
-      <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-border/70 bg-card">
         <Image
           src={activeImage}
           alt={alt}
@@ -40,10 +40,10 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
               key={`${image}-${index}`}
               type="button"
               onClick={() => setActiveIndex(index)}
-              className={`relative aspect-square overflow-hidden rounded-md border transition-colors ${
+              className={`relative aspect-square overflow-hidden rounded-2xl border transition-colors ${
                 activeIndex === index
-                  ? "border-gray-900"
-                  : "border-gray-200 hover:border-gray-400"
+                  ? "border-primary"
+                  : "border-border hover:border-primary/50"
               }`}
               aria-label={`View image ${index + 1}`}
             >
