@@ -68,7 +68,7 @@ const values = [
 const teamMembers = [
   {
     name: "Piyush Negi",
-    role: "Founderandceo",
+    role: "Founder and CEO",
     image: "/piyush.jpeg",
     description:
       "Visionary builder focused on creativity, culture, and making premium fashion feel more personal.",
@@ -103,7 +103,7 @@ export default function AboutPage() {
         {
           "@type": "Person",
           name: "Piyush Negi",
-          jobTitle: "Founderandceo",
+          jobTitle: "Founder and CEO",
         },
       ],
       slogan: "Till End of the Era",
@@ -345,15 +345,6 @@ export default function AboutPage() {
                   className="rounded-none bg-white text-gray-900 hover:bg-gray-100"
                 >
                   Shop Collections
-                </Button>
-              </Link>
-              <Link href="/custom">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-none border-white bg-transparent text-white hover:bg-white hover:text-gray-900"
-                >
-                  Create Custom Design
                 </Button>
               </Link>
             </div>

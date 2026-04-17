@@ -69,11 +69,11 @@ export default function CustomTshirtPrintingIndiaPage() {
             artwork, and order premium custom printed t-shirts with confidence.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/custom">
-              <Button>Start Custom Design</Button>
-            </Link>
             <Link href="/shipping">
-              <Button variant="outline">Shipping Details</Button>
+              <Button>Shipping Details</Button>
+            </Link>
+            <Link href="/collections">
+              <Button variant="outline">Shop Collections</Button>
             </Link>
           </div>
         </div>

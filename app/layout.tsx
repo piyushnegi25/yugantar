@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { InitializeLocalStorage } from "@/components/initialize-storage";
+import { SiteFooter } from "@/components/site-footer";
 import {
   createMetadata,
   generateLocalBusinessStructuredData,
@@ -131,6 +132,7 @@ export default function RootLayout({
           <InitializeLocalStorage />
           <CombinedProviders>
             {children}
+            <SiteFooter />
             <Toaster />
           </CombinedProviders>
         </ThemeProvider>

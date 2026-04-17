@@ -97,6 +97,7 @@ export async function createUser(userData: {
   role?: "user" | "admin"
   provider: "email" | "google"
   googleId?: string
+  isEmailVerified?: boolean
 }): Promise<IUser> {
   try {
     const user = await createUserRecord({
@@ -107,7 +108,8 @@ export async function createUser(userData: {
       role: userData.role,
       provider: userData.provider,
       googleId: userData.googleId,
-      isEmailVerified: userData.provider === "google",
+      isEmailVerified:
+        userData.isEmailVerified ?? userData.provider === "google",
     });
 
     return user;
