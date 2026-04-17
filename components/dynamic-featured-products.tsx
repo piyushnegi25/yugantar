@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -120,15 +120,15 @@ export function DynamicFeaturedProducts() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="h-72 animate-pulse">
+          <div key={i} className="h-72 animate-pulse rounded-3xl border border-border bg-card p-3">
             <div className="flex h-full flex-col p-0">
-              <div className="mb-2 aspect-square flex-shrink-0 rounded-t-lg bg-gray-200" />
-              <div className="flex-1 space-y-1 p-2">
-                <div className="h-3 w-3/4 rounded bg-gray-200" />
-                <div className="h-3 w-1/2 rounded bg-gray-200" />
-                <div className="mt-auto h-6 w-full rounded bg-gray-200" />
+              <div className="mb-2 aspect-[4/5] flex-shrink-0 rounded-2xl bg-muted" />
+              <div className="flex-1 space-y-2 p-1">
+                <div className="h-3 w-3/4 rounded bg-muted" />
+                <div className="h-3 w-1/2 rounded bg-muted" />
+                <div className="mt-auto h-9 w-full rounded-full bg-muted" />
               </div>
             </div>
           </div>
@@ -139,8 +139,8 @@ export function DynamicFeaturedProducts() {
 
   if (products.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <p className="mb-4 text-xs text-muted-foreground">
+      <div className="py-12 text-center section-shell">
+        <p className="mb-4 pt-8 text-xs text-muted-foreground">
           No featured products available
         </p>
         <Link href="/admin/catalog">
@@ -168,12 +168,12 @@ export function DynamicFeaturedProducts() {
           return (
             <CarouselItem
               key={product._id}
-              className="basis-[85%] pl-2 sm:basis-1/2 md:pl-4 lg:basis-1/3 xl:basis-1/4"
+              className="basis-[82%] pl-2 sm:basis-1/2 md:pl-4 lg:basis-1/3 xl:basis-1/4"
             >
               <div className="h-full">
-                <Card className="group flex h-full min-h-96 flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <Card className="group surface-card flex h-full min-h-[24rem] flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1">
                   <CardContent className="flex h-full flex-col p-0">
-                    <div className="relative aspect-square w-full">
+                    <div className="relative aspect-[4/5] w-full bg-[hsl(var(--surface-1))]">
                       <Image
                         src={
                           product.images[0] ||
@@ -181,23 +181,19 @@ export function DynamicFeaturedProducts() {
                         }
                         alt={product.name}
                         fill
-                        className="rounded-t-lg object-cover transition-transform duration-300"
+                        className="object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                       />
                       {badge && (
-                        <Badge className="absolute left-2 top-2 bg-red-500 hover:bg-red-600">
+                        <Badge className="absolute left-3 top-3 rounded-full bg-[hsl(var(--surface-3))] px-3 py-1 text-[11px] font-semibold text-[hsl(var(--surface-3-foreground))] hover:bg-[hsl(var(--surface-3))]">
                           {badge}
                         </Badge>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute right-2 top-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
+                      <div className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-black/65 text-white shadow-md">
+                        <ShoppingCart className="h-4 w-4" />
+                      </div>
                       {product.originalPrice && (
-                        <Badge className="absolute bottom-2 left-2 bg-green-500">
+                        <Badge className="absolute bottom-3 left-3 rounded-full bg-accent px-3 py-1 text-[11px] font-semibold text-accent-foreground hover:bg-accent">
                           Save ₹
                           {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
@@ -206,7 +202,7 @@ export function DynamicFeaturedProducts() {
 
                     <div className="flex flex-1 flex-col p-4">
                       <Link href={`/products/${product.slug}`}>
-                        <h3 className="mb-2 line-clamp-1 text-lg font-semibold transition-colors group-hover:text-blue-600">
+                        <h3 className="mb-1 line-clamp-1 text-lg font-bold lowercase text-foreground transition-colors group-hover:text-primary">
                           {product.name}
                         </h3>
                       </Link>
@@ -221,7 +217,7 @@ export function DynamicFeaturedProducts() {
                             {product.rating}
                           </span>
                         </div>
-                        <span className="text-gray-400">•</span>
+                        <span className="text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground">
                           {product.reviews} reviews
                         </span>
@@ -229,11 +225,11 @@ export function DynamicFeaturedProducts() {
 
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900">
+                          <span className="text-xl font-extrabold text-foreground">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
-                            <span className="text-sm text-gray-400 line-through">
+                            <span className="text-sm text-muted-foreground line-through">
                               ₹{product.originalPrice}
                             </span>
                           )}
@@ -242,7 +238,7 @@ export function DynamicFeaturedProducts() {
 
                       <div className="mb-3">
                         <div className="mb-2 flex items-start gap-2">
-                          <span className="flex-shrink-0 text-sm font-medium text-gray-700">
+                          <span className="flex-shrink-0 text-sm font-medium text-foreground/80">
                             Size:
                           </span>
                           <div className="flex min-w-0 flex-1 flex-wrap gap-1">
@@ -264,10 +260,10 @@ export function DynamicFeaturedProducts() {
                                   disabled={isOutOfStock}
                                   className={`flex-shrink-0 rounded-md border px-3 py-2 text-sm transition-colors ${
                                     isOutOfStock
-                                      ? "cursor-not-allowed border-gray-300 bg-gray-300 text-gray-500 opacity-60"
+                                      ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
                                       : selectedSizes[product._id] === size
-                                        ? "border-transparent bg-gray-900 text-white"
-                                        : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        ? "border-primary bg-primary text-primary-foreground"
+                                        : "border-border bg-background text-foreground hover:bg-muted"
                                   }`}
                                 >
                                   {size}
@@ -304,8 +300,8 @@ export function DynamicFeaturedProducts() {
           );
         })}
       </CarouselContent>
-      <CarouselPrevious className="left-2 top-1/2 z-10 hidden -translate-y-1/2 border-border bg-background/95 hover:bg-background md:flex" />
-      <CarouselNext className="right-2 top-1/2 z-10 hidden -translate-y-1/2 border-border bg-background/95 hover:bg-background md:flex" />
+      <CarouselPrevious className="left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border-border bg-background/95 hover:bg-muted md:flex" />
+      <CarouselNext className="right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border-border bg-background/95 hover:bg-muted md:flex" />
     </Carousel>
   );
 }
