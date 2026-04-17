@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -141,6 +142,7 @@ export default function CheckoutPage() {
   const [isPinLookupLoading, setIsPinLookupLoading] = useState(false);
   const [pinLookupMessage, setPinLookupMessage] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [failedImages, setFailedImages] = useState<Record<string, true>>({});
   const formRef = useRef<HTMLFormElement | null>(null);
 
   const [address, setAddress] = useState<AddressForm>({
@@ -590,6 +592,14 @@ export default function CheckoutPage() {
     setErrors({});
   };
 
+  const getItemImageSrc = (itemKey: string, source?: string) => {
+    if (!source || failedImages[itemKey]) {
+      return "/placeholder.svg";
+    }
+
+    return source;
+  };
+
   if (!user || items.length === 0) {
     if (!authChecked || items.length === 0) {
       return (
@@ -829,7 +839,21 @@ export default function CheckoutPage() {
                     key={`${item.id}-${item.size}`}
                     className="flex items-center space-x-3"
                   >
-                    <div className="w-12 h-12 bg-gray-100  rounded-md"></div>
+                    <div className="relative h-12 w-12 overflow-hidden rounded-md bg-gray-100">
+                      <Image
+                        src={getItemImageSrc(`${item.id}-${item.size}`, item.image)}
+                        alt={item.name}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                        onError={() =>
+                          setFailedImages((prev) => ({
+                            ...prev,
+                            [`${item.id}-${item.size}`]: true,
+                          }))
+                        }
+                      />
+                    </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{item.name}</p>
                       <p className="text-xs text-gray-500">
