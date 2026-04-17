@@ -88,8 +88,8 @@ export default function TshirtBrandsIndiaPage() {
             <Link href="/collections">
               <Button>Shop Collections</Button>
             </Link>
-            <Link href="/custom">
-              <Button variant="outline">Design Custom Tee</Button>
+            <Link href="/shipping">
+              <Button variant="outline">Shipping Details</Button>
             </Link>
           </div>
         </div>
