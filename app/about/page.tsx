@@ -121,19 +121,19 @@ export default function AboutPage() {
         }}
       />
 
-      <div className="min-h-screen bg-white transition-colors">
+      <div className="min-h-screen bg-background transition-colors">
         <SiteHeader currentPath="/about" />
 
-        <section className="bg-primary py-20 text-white">
-          <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
+        <section className="app-shell py-6 sm:py-8">
+          <div className="section-shell bg-primary px-5 py-14 text-center text-white sm:px-8 sm:py-16">
             <Badge
               variant="secondary"
-              className="mb-4 bg-white text-primary"
+              className="mb-4 rounded-full bg-white text-primary"
             >
               <MapPin className="mr-2 h-4 w-4" />
               Noida, India
             </Badge>
-            <h1 className="mb-6 text-4xl font-bold lg:text-6xl">
+            <h1 className="mb-6 text-4xl font-extrabold lowercase lg:text-6xl">
               About Yugantar
             </h1>
             <p className="mx-auto max-w-3xl text-xl">
@@ -144,19 +144,19 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-gray-50 py-20 transition-colors">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="app-shell py-4 sm:py-6">
+          <div className="section-shell px-5 py-10 sm:px-8 sm:py-12">
             <div className="grid items-center gap-16 lg:grid-cols-2">
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Badge
                     variant="outline"
-                    className="border-primary text-primary"
+                    className="rounded-full border-primary text-primary"
                   >
                     <Calendar className="mr-2 h-4 w-4" />
                     Founded 2025
                   </Badge>
-                  <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
+                  <h2 className="text-3xl font-extrabold lowercase text-foreground lg:text-4xl">
                     Born from Creativity,
                     <span className="block text-primary">
                       Built for Everyone
@@ -164,7 +164,7 @@ export default function AboutPage() {
                   </h2>
                 </div>
 
-                <div className="space-y-4 text-lg leading-relaxed text-gray-600">
+                <div className="space-y-4 text-lg leading-relaxed text-muted-foreground">
                   <p>
                     Yugantar started with a simple idea: awesome designs should
                     never be limited by size. As Gen Z creators, we saw the gap
@@ -186,7 +186,7 @@ export default function AboutPage() {
               </div>
 
               <div className="relative">
-                <div className="aspect-[4/5] overflow-hidden rounded-none bg-secondary">
+                <div className="aspect-[4/5] overflow-hidden rounded-3xl bg-secondary">
                   <Image
                     src="/aboutCustomer.png"
                     alt="Yugantar team"
@@ -195,12 +195,12 @@ export default function AboutPage() {
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="absolute -bottom-6 -right-6 border bg-white p-6 shadow-lg">
+                <div className="absolute -bottom-6 -right-6 rounded-2xl border border-border bg-card p-6 shadow-lg">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">
+                    <div className="text-2xl font-bold text-foreground">
                       10,000+
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                       Happy Customers
                     </div>
                   </div>
@@ -210,13 +210,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-white py-20 transition-colors">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="app-shell py-4 sm:py-6">
+          <div className="section-shell px-5 py-10 sm:px-8 sm:py-12">
             <div className="mb-16 text-center">
-              <h2 className="mb-4 text-3xl font-bold text-gray-900 lg:text-4xl">
+              <h2 className="mb-4 text-3xl font-extrabold lowercase text-foreground lg:text-4xl">
                 What We Stand For
               </h2>
-              <p className="mx-auto max-w-2xl text-lg text-gray-600">
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
                 Our values drive everything we do, from design to delivery.
               </p>
             </div>
@@ -225,14 +225,14 @@ export default function AboutPage() {
               {values.map((value) => (
                 <Card
                   key={value.title}
-                  className="border-gray-200 bg-white text-center shadow-sm"
+                  className="surface-card text-center"
                 >
                   <CardContent className="p-6">
                     <div className="mb-4 flex justify-center">{value.icon}</div>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                    <h3 className="mb-2 text-lg font-semibold lowercase text-foreground">
                       {value.title}
                     </h3>
-                    <p className="text-gray-600">{value.description}</p>
+                    <p className="text-muted-foreground">{value.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -240,13 +240,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-gray-50 py-20 transition-colors">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="app-shell py-4 sm:py-6">
+          <div className="section-shell px-5 py-10 sm:px-8 sm:py-12">
             <div className="mb-16 text-center">
-              <h2 className="mb-4 text-3xl font-bold text-gray-900 lg:text-4xl">
+              <h2 className="mb-4 text-3xl font-extrabold lowercase text-foreground lg:text-4xl">
                 Meet the Team
               </h2>
-              <p className="mx-auto max-w-2xl text-lg text-gray-600">
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
                 The people behind Yugantar, building expressive fashion with a
                 strong focus on quality and inclusivity.
               </p>
@@ -256,10 +256,10 @@ export default function AboutPage() {
               {teamMembers.map((member) => (
                 <Card
                   key={member.name}
-                  className="w-[27rem] border-gray-200 bg-white text-center shadow-sm"
+                  className="surface-card w-[27rem] text-center"
                 >
                   <CardContent className="p-6">
-                    <div className="mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-gray-100">
+                    <div className="mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-muted">
                       <Image
                         src={member.image}
                         alt={member.name}
@@ -268,13 +268,13 @@ export default function AboutPage() {
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <h3 className="mb-1 text-xl font-semibold text-gray-900">
+                    <h3 className="mb-1 text-xl font-semibold text-foreground">
                       {member.name}
                     </h3>
                     <p className="mb-3 font-medium text-primary">
                       {member.role}
                     </p>
-                    <p className="text-gray-600">{member.description}</p>
+                    <p className="text-muted-foreground">{member.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -282,13 +282,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-muted py-20 transition-colors">
-          <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
+        <section className="app-shell py-4 sm:py-6">
+          <div className="section-shell bg-muted px-5 py-10 text-center sm:px-8 sm:py-12">
             <div className="mx-auto max-w-4xl">
-              <h2 className="mb-6 text-3xl font-bold text-gray-900 lg:text-4xl">
+              <h2 className="mb-6 text-3xl font-extrabold lowercase text-foreground lg:text-4xl">
                 Our Plus Size Promise
               </h2>
-              <p className="mb-8 text-lg text-gray-600">
+              <p className="mb-8 text-lg text-muted-foreground">
                 We&apos;re not just inclusive in name. Our plus size range gets
                 the same design attention, quality materials, and style focus as
                 every other fit we offer, because great fashion should never be
@@ -300,27 +300,24 @@ export default function AboutPage() {
                   <div className="mb-2 text-3xl font-bold text-primary">
                     XS - 3XL
                   </div>
-                  <p className="text-gray-600">Complete size range</p>
+                  <p className="text-muted-foreground">Complete size range</p>
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-3xl font-bold text-primary">
                     Same Quality
                   </div>
-                  <p className="text-gray-600">No compromises</p>
+                  <p className="text-muted-foreground">No compromises</p>
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-3xl font-bold text-primary">
                     Equal Love
                   </div>
-                  <p className="text-gray-600">Every size matters</p>
+                  <p className="text-muted-foreground">Every size matters</p>
                 </div>
               </div>
 
               <Link href="/">
-                <Button
-                  size="lg"
-                  className="rounded-none bg-primary uppercase font-bold tracking-wider text-white hover:bg-primary/90"
-                >
+                <Button size="lg" className="cta-pill-primary px-8">
                   Shop All Sizes
                 </Button>
               </Link>
@@ -328,22 +325,19 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-gray-900 py-20 text-white transition-colors">
-          <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="mb-6 text-3xl font-bold lg:text-4xl">
+        <section className="app-shell py-4 pb-12 sm:py-6 sm:pb-16">
+          <div className="section-shell bg-[hsl(var(--surface-3))] px-5 py-12 text-white sm:px-8 sm:py-14">
+            <h2 className="mb-6 text-3xl font-extrabold lowercase lg:text-4xl">
               Ready to Express Yourself?
             </h2>
-            <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-300">
+            <p className="mx-auto mb-8 max-w-2xl text-lg text-white/75">
               Join customers who&apos;ve found their fit and style with
               Yugantar.
             </p>
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <Link href="/collections">
-                <Button
-                  size="lg"
-                  className="rounded-none bg-white text-gray-900 hover:bg-gray-100"
-                >
+                <Button size="lg" className="cta-pill bg-white px-8 text-foreground hover:bg-white/90">
                   Shop Collections
                 </Button>
               </Link>

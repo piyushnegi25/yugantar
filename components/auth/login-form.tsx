@@ -104,12 +104,12 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="surface-card mx-auto w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 ">
+        <CardTitle className="text-2xl font-extrabold lowercase text-foreground">
           Welcome Back
         </CardTitle>
-        <p className="text-gray-600 ">
+        <p className="text-muted-foreground">
           Sign in to your Yugantar account
         </p>
       </CardHeader>
@@ -125,7 +125,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -144,7 +144,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -161,7 +161,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
               >
                 {showPassword ? (
@@ -176,13 +176,13 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 text-sm">
               <input type="checkbox" className="rounded" disabled={isLoading} />
-              <span className="text-gray-600 ">
+              <span className="text-muted-foreground">
                 Remember me
               </span>
             </label>
             <Link
               href="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-primary hover:text-primary/80"
             >
               Forgot password?
             </Link>
@@ -198,7 +198,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white  px-2 text-gray-500">
+            <span className="bg-card px-2 text-muted-foreground">
               Or continue with
             </span>
           </div>
@@ -216,14 +216,14 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 ">
-            Don't have an account?{" "}
-          </span>
-          <button
-            onClick={onToggleForm}
-            className="text-blue-600 hover:text-blue-500 font-medium"
-            disabled={isLoading}
-          >
+            <span className="text-muted-foreground">
+              Don't have an account?{" "}
+            </span>
+            <button
+              onClick={onToggleForm}
+              className="font-medium text-primary hover:text-primary/80"
+              disabled={isLoading}
+            >
             Sign up
           </button>
         </div>

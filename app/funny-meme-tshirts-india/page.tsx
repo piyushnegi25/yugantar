@@ -40,43 +40,45 @@ export default function FunnyMemeTshirtsIndiaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <SiteHeader currentPath="/funny-meme-tshirts-india" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="app-shell py-6 sm:py-8">
+        <div className="section-shell px-5 py-10 sm:px-6 sm:py-12">
+          <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
             Funny Meme T-Shirts Online in India
           </h1>
-          <p className="mt-4 max-w-3xl text-gray-600">
+          <p className="mt-4 max-w-3xl text-muted-foreground">
             Add humor to your wardrobe with meme-inspired printed t-shirts. Shop
             viral and classic internet references with premium-quality prints.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/meme">
-              <Button>Shop Meme Collection</Button>
+              <Button className="cta-pill-primary px-6">Shop Meme Collection</Button>
             </Link>
             <Link href="/graphic-tshirts-india">
-              <Button variant="outline">Graphic Tee Guide</Button>
+              <Button variant="outline" className="cta-pill px-6">Graphic Tee Guide</Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900">
+      <section className="app-shell py-4 pb-12 sm:py-6 sm:pb-14">
+        <div className="section-shell px-5 py-7 sm:px-6">
+        <h2 className="text-2xl font-semibold lowercase text-foreground">
           Popular Meme Tee Use Cases
         </h2>
-        <ul className="mt-4 space-y-3 text-gray-700">
+        <ul className="mt-4 space-y-3 text-foreground/80">
           <li>Everyday casual fits with a conversation-starting graphic.</li>
           <li>Gifting for friends who follow internet and meme culture.</li>
           <li>Creator-style content shoots and campus events.</li>
           <li>Streetwear outfits with playful, expressive personality.</li>
         </ul>
+        </div>
       </section>
     </main>
   );

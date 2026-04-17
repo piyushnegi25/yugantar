@@ -40,41 +40,43 @@ export default function AnimeTshirtsIndiaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <SiteHeader currentPath="/anime-tshirts-india" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="app-shell py-6 sm:py-8">
+        <div className="section-shell px-5 py-10 sm:px-6 sm:py-12">
+          <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
             Anime T-Shirts Online in India
           </h1>
-          <p className="mt-4 max-w-3xl text-gray-600">
+          <p className="mt-4 max-w-3xl text-muted-foreground">
             From iconic characters to minimalist anime motifs, explore premium
             anime-inspired t-shirts built for daily wear and fandom expression.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/anime">
-              <Button>Shop Anime Collection</Button>
+              <Button className="cta-pill-primary px-6">Shop Anime Collection</Button>
             </Link>
             <Link href="/collections">
-              <Button variant="outline">Browse All Tees</Button>
+              <Button variant="outline" className="cta-pill px-6">Browse All Tees</Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900">What You Get</h2>
-        <ul className="mt-4 space-y-3 text-gray-700">
+      <section className="app-shell py-4 pb-12 sm:py-6 sm:pb-14">
+        <div className="section-shell px-5 py-7 sm:px-6">
+        <h2 className="text-2xl font-semibold lowercase text-foreground">What You Get</h2>
+        <ul className="mt-4 space-y-3 text-foreground/80">
           <li>Anime-inspired artwork with premium print clarity.</li>
           <li>Comfort-first fabric suitable for daily styling.</li>
           <li>Streetwear-ready fits including relaxed and oversized options.</li>
           <li>Fast delivery across India with responsive support.</li>
         </ul>
+        </div>
       </section>
     </main>
   );

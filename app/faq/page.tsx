@@ -189,49 +189,48 @@ export default function FAQPage() {
           __html: JSON.stringify(faqPageStructuredData),
         }}
       />
-      <div className="min-h-screen bg-gray-50 ">
+      <div className="min-h-screen bg-background">
         <SiteHeader currentPath="/faq" />
 
-        <div className="border-b border-gray-200 bg-white">
-          <div className="container mx-auto px-4 py-6">
+        <div className="app-shell pt-6">
+          <div className="section-shell px-5 py-6 sm:px-6">
             <div className="flex items-center gap-3 mb-2">
-              <HelpCircle className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900 ">
+              <HelpCircle className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-extrabold lowercase text-foreground">
                 Frequently Asked Questions
               </h1>
             </div>
-            <p className="text-gray-600  text-lg">
+            <p className="text-lg text-muted-foreground">
               Find answers to common questions about Yugantar t-shirts, orders,
               and policies.
             </p>
           </div>
         </div>
 
-        {/* FAQ Content */}
-        <div className="container mx-auto px-4 py-8">
+        <div className="app-shell py-8">
           <div className="max-w-4xl mx-auto space-y-8">
             {faqData.map((category, categoryIndex) => (
-              <Card key={categoryIndex} className="overflow-hidden">
-                <CardHeader className="bg-gray-100 ">
-                  <CardTitle className="text-xl text-gray-900 ">
+              <Card key={categoryIndex} className="surface-card overflow-hidden">
+                <CardHeader className="bg-muted/60">
+                  <CardTitle className="text-xl lowercase text-foreground">
                     {category.category}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <Accordion type="single" collapsible className="w-full">
                     {category.questions.map((faq, faqIndex) => (
-                      <AccordionItem
-                        key={faqIndex}
-                        value={`${categoryIndex}-${faqIndex}`}
-                        className="border-b border-gray-200  last:border-b-0"
-                      >
-                        <AccordionTrigger className="px-6 py-4 text-left font-medium text-gray-900 transition-colors hover:bg-gray-50">
-                          {faq.question}
-                        </AccordionTrigger>
-                        <AccordionContent className="px-6 pb-4 text-gray-600  leading-relaxed">
-                          {faq.answer}
-                        </AccordionContent>
-                      </AccordionItem>
+                        <AccordionItem
+                          key={faqIndex}
+                          value={`${categoryIndex}-${faqIndex}`}
+                          className="border-b border-border last:border-b-0"
+                        >
+                          <AccordionTrigger className="px-6 py-4 text-left font-medium text-foreground transition-colors hover:bg-muted/60">
+                            {faq.question}
+                          </AccordionTrigger>
+                          <AccordionContent className="px-6 pb-4 leading-relaxed text-muted-foreground">
+                            {faq.answer}
+                          </AccordionContent>
+                        </AccordionItem>
                     ))}
                   </Accordion>
                 </CardContent>
@@ -239,26 +238,25 @@ export default function FAQPage() {
             ))}
           </div>
 
-          {/* Contact Section */}
-          <Card className="max-w-4xl mx-auto mt-12">
+          <Card className="surface-card mx-auto mt-12 max-w-4xl">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900  mb-4">
+              <h2 className="mb-4 text-2xl font-extrabold lowercase text-foreground">
                 Still have questions?
               </h2>
-              <p className="text-gray-600  mb-6">
+              <p className="mb-6 text-muted-foreground">
                 Can't find the answer you're looking for? Our customer support
                 team is here to help.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="cta-pill-primary inline-flex px-6"
                 >
                   Contact Support
                 </Link>
                 <Link
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                  className="cta-pill inline-flex border border-border bg-background px-6 text-foreground transition-colors hover:bg-muted"
                 >
                   Email Us
                 </Link>

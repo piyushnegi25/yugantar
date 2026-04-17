@@ -206,12 +206,12 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="surface-card mx-auto w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 ">
+        <CardTitle className="text-2xl font-extrabold lowercase text-foreground">
           Create Account
         </CardTitle>
-        <p className="text-gray-600 ">
+        <p className="text-muted-foreground">
           Join Yugantar and express your creativity
         </p>
       </CardHeader>
@@ -234,7 +234,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
@@ -253,7 +253,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -272,7 +272,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -289,7 +289,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                   disabled={isLoading}
                 >
                   {showPassword ? (
@@ -304,7 +304,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
@@ -320,7 +320,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? (
@@ -340,13 +340,13 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 required
                 disabled={isLoading}
               />
-              <label htmlFor="terms" className="text-sm text-gray-600 ">
+              <label htmlFor="terms" className="text-sm text-muted-foreground">
                 I agree to the{" "}
-                <a href="/terms" className="text-blue-600 hover:text-blue-500">
+                <a href="/terms" className="text-primary hover:text-primary/80">
                   Terms of Service
                 </a>{" "}
                 and{" "}
-                <a href="/privacy" className="text-blue-600 hover:text-blue-500">
+                <a href="/privacy" className="text-primary hover:text-primary/80">
                   Privacy Policy
                 </a>
               </label>
@@ -358,7 +358,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div className="rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
+            <div className="rounded-2xl border border-border bg-muted/50 p-3 text-sm text-foreground">
               Enter the 6-digit OTP sent to <strong>{formData.email}</strong>. It expires in {expiresInMinutes} minutes.
             </div>
 
@@ -413,15 +413,15 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
 
         {step === "details" ? (
           <>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white  px-2 text-gray-500">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
                   Or continue with
                 </span>
-              </div>
+            </div>
             </div>
 
             <Button
@@ -436,18 +436,18 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             </Button>
           </>
         ) : (
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-muted-foreground">
             Google signup does not require OTP.
           </div>
         )}
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 ">
+          <span className="text-muted-foreground">
             Already have an account?{" "}
           </span>
           <button
             onClick={onToggleForm}
-            className="text-blue-600 hover:text-blue-500 font-medium"
+            className="font-medium text-primary hover:text-primary/80"
             disabled={isLoading}
           >
             Sign in

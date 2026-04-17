@@ -8,7 +8,6 @@ import {
   Grid,
   List,
   ShoppingCart,
-  Heart,
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
@@ -183,10 +182,10 @@ export default function MemePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 ">
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">
             Loading meme products...
           </p>
         </div>
@@ -196,7 +195,7 @@ export default function MemePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Error: {error}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
@@ -206,14 +205,13 @@ export default function MemePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 ">
+    <div className="min-h-screen bg-background">
       <SiteHeader currentPath="/meme" />
 
       <CategoryHeroBanner fallback={MEME_HERO_FALLBACK} position="meme_hero" />
 
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        {/* Filters */}
-        <div className="bg-white  rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+      <div className="app-shell py-6 sm:py-8">
+        <div className="section-shell mb-6 p-4 sm:mb-8 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <CategoryFilterChips
               categories={categories}
@@ -221,12 +219,12 @@ export default function MemePage() {
               onSelect={setSelectedCategory}
             />
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full border border-border bg-background p-1">
                 <Button
                   variant={viewMode === "grid" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("grid")}
-                  className="h-10 w-10 p-0"
+                  className="h-9 w-9 p-0"
                   aria-label="Grid view"
                   title="Grid view"
                 >
@@ -236,14 +234,14 @@ export default function MemePage() {
                   variant={viewMode === "list" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("list")}
-                  className="h-10 w-10 p-0"
+                  className="h-9 w-9 p-0"
                   aria-label="List view"
                   title="List view"
                 >
                   <List className="w-4 h-4" />
                 </Button>
                 </div>
-                <p className="text-sm text-gray-600">{filteredProducts.length} products</p>
+                <p className="text-sm text-muted-foreground">{filteredProducts.length} products</p>
               </div>
             </div>
           </div>
@@ -251,7 +249,7 @@ export default function MemePage() {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 ">
+            <p className="text-muted-foreground">
               No products found for the selected category.
             </p>
           </div>
@@ -259,7 +257,7 @@ export default function MemePage() {
           <div
             className={
               viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+                ? "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
                 : "flex flex-col gap-3 sm:gap-4"
             }
           >
@@ -268,7 +266,7 @@ export default function MemePage() {
               return (
                 <Card
                   key={product._id}
-                  className={`group hover:shadow-lg transition-all duration-300 h-full flex flex-col hover:scale-105 ${
+                  className={`group surface-card h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 ${
                     viewMode === "list" ? "flex-row min-h-48" : "min-h-96"
                   }`}
                 >
@@ -281,7 +279,7 @@ export default function MemePage() {
                       className={`relative ${
                         viewMode === "list"
                           ? "w-48 flex-shrink-0"
-                          : "aspect-square w-full"
+                          : "aspect-[4/5] w-full"
                       }`}
                     >
                       <Image
@@ -289,23 +287,19 @@ export default function MemePage() {
                         alt={product.name}
                         fill
                         className={`object-cover transition-transform duration-300 ${
-                          viewMode === "list" ? "rounded-l-lg" : "rounded-t-lg"
+                          viewMode === "list" ? "rounded-l-3xl" : "rounded-t-3xl"
                         }`}
                       />
                       {badge && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <Badge className="absolute left-3 top-3 rounded-full bg-[hsl(var(--surface-3))] px-3 py-1 text-[11px] font-semibold text-[hsl(var(--surface-3-foreground))] hover:bg-[hsl(var(--surface-3))]">
                           {badge}
                         </Badge>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      >
-                        <Heart className="w-4 h-4" />
-                      </Button>
+                      <div className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-black/65 text-white shadow-md">
+                        <ShoppingCart className="h-4 w-4" />
+                      </div>
                       {product.originalPrice && (
-                        <Badge className="absolute bottom-2 left-2 bg-green-500">
+                        <Badge className="absolute bottom-3 left-3 rounded-full bg-accent px-3 py-1 text-[11px] font-semibold text-accent-foreground hover:bg-accent">
                           Save ₹
                           {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
@@ -313,11 +307,11 @@ export default function MemePage() {
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
                       <Link href={`/products/${product.slug}`}>
-                        <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        <h3 className="mb-1 line-clamp-1 text-lg font-bold lowercase text-foreground transition-colors group-hover:text-primary">
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-gray-600  text-sm mb-3 line-clamp-2 flex-grow">
+                      <p className="mb-3 line-clamp-2 flex-grow text-sm text-muted-foreground">
                         {product.description}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
@@ -327,8 +321,8 @@ export default function MemePage() {
                             {product.rating}
                           </span>
                         </div>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 ">
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground">
                           {product.reviews} reviews
                         </span>
                       </div>
@@ -336,11 +330,11 @@ export default function MemePage() {
                       {/* Price Section */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900 ">
+                          <span className="text-xl font-extrabold text-foreground">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
-                            <span className="text-sm text-gray-400 line-through">
+                            <span className="text-sm text-muted-foreground line-through">
                               ₹{product.originalPrice}
                             </span>
                           )}
@@ -350,7 +344,7 @@ export default function MemePage() {
                       {/* Size Options */}
                       <div className="mb-3">
                         <div className="flex items-start gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-700  flex-shrink-0">
+                          <span className="flex-shrink-0 text-sm font-medium text-foreground/80">
                             Size:
                           </span>
                           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
@@ -375,11 +369,11 @@ export default function MemePage() {
                                   disabled={isOutOfStock}
                                   className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
                                     isOutOfStock
-                                      ? "bg-gray-300  text-gray-500  border-gray-300  cursor-not-allowed opacity-60"
+                                      ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
                                       : selectedSizes[product._id] === size
-                                      ? "bg-gray-900 text-white border-transparent"
-                                      : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
-                                  }`}
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-border bg-background text-foreground hover:bg-muted"
+                                   }`}
                                 >
                                   {size}
                                 </button>
