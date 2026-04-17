@@ -75,7 +75,7 @@ export function UserMenu() {
 
             setIsLoading(false);
             return;
-          } else {
+          } else if (response.status === 401) {
             // Server says no valid auth, clear everything
             setUser(null);
             localStorage.removeItem("user");
@@ -87,9 +87,21 @@ export function UserMenu() {
                   key: "user",
                   newValue: null,
                 })
-              );
-            } catch {
-              // Ignore cross-browser StorageEvent constructor issues.
+                );
+              } catch {
+                // Ignore cross-browser StorageEvent constructor issues.
+              }
+          } else {
+            // Transient server issue - preserve existing local user if available.
+            const userData = localStorage.getItem("user");
+            if (userData) {
+              try {
+                setUser(JSON.parse(userData));
+                setIsLoading(false);
+                return;
+              } catch {
+                localStorage.removeItem("user");
+              }
             }
           }
         } catch (error) {
@@ -207,10 +219,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={user.picture || "/placeholder.svg"}
-              alt={user.name}
-            />
+            {user.picture ? <AvatarImage src={user.picture} alt={user.name} /> : null}
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
         </Button>
