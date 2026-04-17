@@ -91,3 +91,17 @@ export interface OrderPaymentRecord {
   currency: string;
   status: PaymentStatus;
 }
+
+export interface AuthEmailOtpRecord {
+  id: string;
+  email: string;
+  name: string;
+  password_hash: string;
+  otp_hash: string;
+  expires_at: string;
+  attempt_count: number;
+  resend_count: number;
+  last_sent_at: string;
+  created_at: string;
+  updated_at: string;
+}
