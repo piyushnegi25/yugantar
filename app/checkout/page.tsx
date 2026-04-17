@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
@@ -141,6 +141,7 @@ export default function CheckoutPage() {
   const [isPinLookupLoading, setIsPinLookupLoading] = useState(false);
   const [pinLookupMessage, setPinLookupMessage] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: "",
@@ -281,9 +282,7 @@ export default function CheckoutPage() {
     };
   }, [user?.id]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
     let { value } = e.target;
 
@@ -363,57 +362,79 @@ export default function CheckoutPage() {
     };
   }, [address.pinCode]);
 
-  const getAddressErrors = (): AddressFieldErrors => {
+  const getAddressErrors = (values: AddressForm): AddressFieldErrors => {
     const nextErrors: AddressFieldErrors = {};
 
-    if (!address.fullName.trim()) {
+    if (!values.fullName.trim()) {
       nextErrors.fullName = "Full name is required";
     }
 
-    if (!address.addressLine1.trim()) {
+    if (!values.addressLine1.trim()) {
       nextErrors.addressLine1 = "Address line 1 is required";
     }
 
-    if (!address.city.trim()) {
+    if (!values.city.trim()) {
       nextErrors.city = "City is required";
-    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(address.city.trim())) {
+    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(values.city.trim())) {
       nextErrors.city = "Enter a valid city name";
     }
 
-    if (!address.state.trim()) {
+    if (!values.state.trim()) {
       nextErrors.state = "State is required";
-    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(address.state.trim())) {
+    } else if (!/^[A-Za-z][A-Za-z .-]{1,49}$/.test(values.state.trim())) {
       nextErrors.state = "Enter a valid state name";
     }
 
-    if (!address.pinCode.trim()) {
+    if (!values.pinCode.trim()) {
       nextErrors.pinCode = "PIN code is required";
-    } else if (!/^\d{6}$/.test(address.pinCode.trim())) {
+    } else if (!/^\d{6}$/.test(values.pinCode.trim())) {
       nextErrors.pinCode = "PIN code must be exactly 6 digits";
     }
 
-    if (!address.phone.trim()) {
+    if (!values.phone.trim()) {
       nextErrors.phone = "Phone number is required";
-    } else if (!/^[6-9]\d{9}$/.test(address.phone.trim())) {
+    } else if (!/^[6-9]\d{9}$/.test(values.phone.trim())) {
       nextErrors.phone = "Enter a valid 10-digit Indian mobile number";
     }
 
     return nextErrors;
   };
 
-  const validateAddress = () => {
-    const nextErrors = getAddressErrors();
+  const validateAddress = (values: AddressForm = address) => {
+    const nextErrors = getAddressErrors(values);
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
+  const syncAddressFromForm = (): AddressForm => {
+    if (!formRef.current) {
+      return address;
+    }
+
+    const formData = new FormData(formRef.current);
+    const nextAddress: AddressForm = {
+      fullName: String(formData.get("fullName") || "").trim(),
+      addressLine1: String(formData.get("addressLine1") || "").trim(),
+      addressLine2: String(formData.get("addressLine2") || "").trim(),
+      city: String(formData.get("city") || "").trim(),
+      state: String(formData.get("state") || "").trim(),
+      pinCode: String(formData.get("pinCode") || "").replace(/\D/g, ""),
+      phone: String(formData.get("phone") || "").replace(/\D/g, ""),
+    };
+
+    setAddress(nextAddress);
+    return nextAddress;
+  };
+
   const isAddressValid = useMemo(
-    () => Object.keys(getAddressErrors()).length === 0,
+    () => Object.keys(getAddressErrors(address)).length === 0,
     [address]
   );
 
   const handlePayment = async () => {
-    if (!validateAddress()) {
+    const latestAddress = syncAddressFromForm();
+
+    if (!validateAddress(latestAddress)) {
       alert("Please fill in all required address fields.");
       return;
     }
@@ -428,7 +449,7 @@ export default function CheckoutPage() {
 
     try {
       const dedupedSavedAddresses = dedupeSavedAddresses([
-        toSavedAddress(address, district),
+        toSavedAddress(latestAddress, district),
         ...savedAddresses,
       ]).slice(0, 10);
 
@@ -444,7 +465,7 @@ export default function CheckoutPage() {
           size: item.size,
           image: item.image,
         })),
-        address,
+        address: latestAddress,
         subtotal,
         shipping,
         total,
@@ -498,9 +519,9 @@ export default function CheckoutPage() {
           },
         },
         prefill: {
-          name: address.fullName,
+          name: latestAddress.fullName,
           email: user.email || "",
-          contact: address.phone,
+          contact: latestAddress.phone,
         },
         theme: {
           color: "#000000",
@@ -613,6 +634,7 @@ export default function CheckoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <form ref={formRef} className="space-y-4" autoComplete="on">
               {savedAddresses.length > 0 ? (
                 <div>
                   <p className="mb-2 text-sm font-medium text-gray-700">
@@ -652,7 +674,10 @@ export default function CheckoutPage() {
                     name="fullName"
                     value={address.fullName}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="Enter your full name"
+                    autoComplete="name"
+                    className={errors.fullName ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.fullName ? (
@@ -667,7 +692,10 @@ export default function CheckoutPage() {
                     name="addressLine1"
                     value={address.addressLine1}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="House number, street name"
+                    autoComplete="address-line1"
+                    className={errors.addressLine1 ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.addressLine1 ? (
@@ -682,7 +710,9 @@ export default function CheckoutPage() {
                   name="addressLine2"
                   value={address.addressLine2}
                   onChange={handleInputChange}
+                  onInput={handleInputChange}
                   placeholder="Apartment, suite, etc. (optional)"
+                  autoComplete="address-line2"
                 />
               </div>
 
@@ -694,7 +724,10 @@ export default function CheckoutPage() {
                     name="city"
                     value={address.city}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="City"
+                    autoComplete="address-level2"
+                    className={errors.city ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.city ? (
@@ -708,7 +741,10 @@ export default function CheckoutPage() {
                     name="state"
                     value={address.state}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="State"
+                    autoComplete="address-level1"
+                    className={errors.state ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.state ? (
@@ -725,9 +761,12 @@ export default function CheckoutPage() {
                     name="pinCode"
                     value={address.pinCode}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="PIN Code"
                     inputMode="numeric"
                     maxLength={6}
+                    autoComplete="postal-code"
+                    className={errors.pinCode ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.pinCode ? (
@@ -741,9 +780,12 @@ export default function CheckoutPage() {
                     name="phone"
                     value={address.phone}
                     onChange={handleInputChange}
+                    onInput={handleInputChange}
                     placeholder="Phone number"
                     inputMode="numeric"
                     maxLength={10}
+                    autoComplete="tel"
+                    className={errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
                     required
                   />
                   {errors.phone ? (
@@ -770,6 +812,7 @@ export default function CheckoutPage() {
                   </p>
                 </div>
               </div>
+              </form>
             </CardContent>
           </Card>
 
