@@ -10,26 +10,32 @@
 
 @layer base {
   :root {
-    --background: 48 40% 98%; /* #FAFAFA / #FDFCF0 vibe */
-    --foreground: 0 0% 10%; /* #1A1A1A */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --background: 0 0% 94%;
+    --foreground: 220 10% 13%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 10% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 15 80% 45%; /* Deep Rust / Terracotta */
+    --popover-foreground: 220 10% 13%;
+    --primary: 109 27% 40%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 43 50% 90%; /* Warm offset */
-    --secondary-foreground: 0 0% 10%;
-    --muted: 43 20% 90%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 43 60% 50%; /* Antique Gold #D4AF37 */
-    --accent-foreground: 0 0% 10%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 220 10% 13%;
+    --muted: 0 0% 88%;
+    --muted-foreground: 220 7% 35%;
+    --accent: 96 58% 71%;
+    --accent-foreground: 220 10% 13%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 43 20% 85%;
-    --input: 43 20% 85%;
-    --ring: 15 80% 45%;
-    --radius: 0.25rem; /* sharper, more editorial corners */
+    --border: 0 0% 84%;
+    --input: 0 0% 84%;
+    --ring: 109 27% 40%;
+    --radius: 1rem;
+    --surface-1: 0 0% 96%;
+    --surface-2: 0 0% 92%;
+    --surface-3: 220 10% 15%;
+    --surface-3-foreground: 0 0% 98%;
+    --shadow-soft: 0 10px 30px -18px rgba(28, 30, 33, 0.35);
+    --shadow-card: 0 20px 28px -24px rgba(28, 30, 33, 0.42);
   }
 }
 
@@ -38,6 +44,62 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sora), "Segoe UI", sans-serif;
+    background-image: radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 34%), radial-gradient(circle at 92% 5%, rgba(180, 209, 164, 0.22) 0, rgba(180, 209, 164, 0) 28%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-montserrat), "Segoe UI", sans-serif;
+    letter-spacing: -0.03em;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply mx-auto w-full max-w-screen-2xl px-3 sm:px-5 lg:px-8;
+  }
+
+  .section-shell {
+    @apply rounded-3xl border border-border/70 bg-card;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .surface-card {
+    @apply rounded-3xl border border-border/70 bg-card;
+    box-shadow: var(--shadow-card);
+  }
+
+  .pill-control {
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10;
+    font-family: var(--font-montserrat), "Segoe UI", sans-serif;
+  }
+
+  .section-title {
+    @apply text-2xl font-extrabold lowercase tracking-tight text-foreground sm:text-3xl;
+  }
+
+  .section-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground;
+    font-family: var(--font-montserrat), "Segoe UI", sans-serif;
+  }
+
+  .cta-pill {
+    @apply inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold;
+    font-family: var(--font-montserrat), "Segoe UI", sans-serif;
+  }
+
+  .cta-pill-primary {
+    @apply cta-pill bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .cta-pill-accent {
+    @apply cta-pill bg-accent text-accent-foreground hover:bg-accent/90;
   }
 }

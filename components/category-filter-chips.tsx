@@ -46,7 +46,7 @@ export function CategoryFilterChips({
             variant={selectedCategory === category.id ? "default" : "outline"}
             size="sm"
             onClick={() => onSelect(category.id)}
-            className="h-10 whitespace-nowrap px-3 text-xs sm:text-sm"
+            className="h-10 whitespace-nowrap px-4 text-xs sm:text-sm"
           >
             {category.name} ({category.count})
           </Button>
@@ -59,7 +59,7 @@ export function CategoryFilterChips({
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded((prev) => !prev)}
-          className="mt-3 h-10 px-2 text-sm text-gray-600 hover:bg-transparent hover:text-gray-900"
+          className="mt-3 h-10 rounded-full px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           {isExpanded ? (
             <>

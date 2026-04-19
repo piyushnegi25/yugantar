@@ -15,7 +15,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 
 interface DynamicNavbarProps {
   currentPath?: string;
@@ -66,16 +66,16 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
   if (!mounted || isLoading) {
     return (
       <>
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden lg:flex space-x-3">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-4 w-16 bg-gray-200  rounded animate-pulse"
+              className="h-9 w-20 animate-pulse rounded-full bg-muted"
             />
           ))}
         </nav>
-        <div className="md:hidden">
-          <div className="h-8 w-8 bg-gray-200  rounded animate-pulse" />
+        <div className="lg:hidden">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
         </div>
       </>
     );
@@ -125,15 +125,15 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
 
   return (
     <>
-      <nav className="hidden md:flex space-x-8">
+      <nav className="hidden lg:flex items-center gap-2">
         {activeCategories.map((category) => (
           <Link
             key={category.id}
             href={`/${category.slug}`}
-            className={`transition-colors ${
+            className={`pill-control ${
               currentPath === `/${category.slug}`
-                ? "text-gray-900  font-medium border-b-2 border-primary"
-                : "text-gray-600 hover:text-gray-900"
+                ? "border-primary/50 bg-primary/15 text-foreground"
+                : "text-muted-foreground"
             }`}
           >
             {category.name}
@@ -144,10 +144,10 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
           <Link
             key={link.href}
             href={link.href}
-            className={`transition-colors ${
+            className={`pill-control ${
               currentPath === link.href
-                ? "text-gray-900  font-medium border-b-2 border-primary"
-                : "text-gray-600 hover:text-gray-900"
+                ? "border-primary/50 bg-primary/15 text-foreground"
+                : "text-muted-foreground"
             }`}
           >
             {link.name}
@@ -155,36 +155,48 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
         ))}
       </nav>
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="h-10 w-10">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full border-border bg-background"
+            >
               <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left">
-            <div className="flex flex-col gap-y-6 pt-6">
-              <Link href="/" className="flex items-center space-x-2 mb-4">
-                
-                <span className="text-xl font-bold">Yugantar</span>
-              </Link>
-              <nav className="flex flex-col gap-y-4">
+          <SheetContent side="left" className="w-[88%] border-r border-border bg-background p-0 sm:max-w-sm">
+            <div className="flex h-full flex-col">
+              <div className="border-b border-border/80 px-5 py-6">
+                <Link href="/" className="inline-flex items-center">
+                  <span className="text-lg font-black uppercase tracking-[0.2em] text-foreground">Yugantar</span>
+                </Link>
+                <p className="mt-2 text-sm text-muted-foreground">Navigate collections and quick links</p>
+              </div>
+              <nav className="flex flex-1 flex-col gap-2 px-4 py-4">
                 {navLinks.map((link) => (
                   <SheetClose asChild key={link.href}>
                     <Link
                       href={link.href}
-                      className={`text-lg ${
+                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-base font-medium transition-colors ${
                         currentPath === link.href
-                          ? "text-primary  font-medium"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "border-primary/50 bg-primary/10 text-foreground"
+                          : "border-border bg-card text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      {link.label}
+                      <span>{link.label}</span>
+                      <ChevronRight className="h-4 w-4" />
                     </Link>
                   </SheetClose>
                 ))}
               </nav>
+              <div className="border-t border-border/80 px-5 py-4">
+                <Link href="/collections" className="cta-pill-accent inline-flex w-full justify-center">
+                  Shop Collection
+                </Link>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

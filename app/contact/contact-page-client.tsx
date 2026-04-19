@@ -74,16 +74,16 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="app-shell py-8">
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="surface-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <MessageCircle className="h-7 w-7 text-blue-600" />
+                <MessageCircle className="h-7 w-7 text-primary" />
                 Send us a message
               </CardTitle>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Fill out the form below and we&apos;ll get back to you within 24 hours.
               </p>
             </CardHeader>
@@ -91,13 +91,13 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-foreground/80">
                       First Name *
                     </label>
                     <Input id="firstName" name="firstName" required className="w-full" value={form.firstName} onChange={handleInputChange} />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="lastName" className="mb-2 block text-sm font-medium text-foreground/80">
                       Last Name *
                     </label>
                     <Input id="lastName" name="lastName" required className="w-full" value={form.lastName} onChange={handleInputChange} />
@@ -105,21 +105,21 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="mb-2 block text-sm font-medium text-foreground/80">
                     Email Address *
                   </label>
                   <Input id="email" name="email" type="email" required className="w-full" value={form.email} onChange={handleInputChange} />
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="mb-2 block text-sm font-medium text-gray-700">
+                  <label htmlFor="phone" className="mb-2 block text-sm font-medium text-foreground/80">
                     Phone Number
                   </label>
                   <Input id="phone" name="phone" type="tel" className="w-full" value={form.phone} onChange={handleInputChange} />
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="mb-2 block text-sm font-medium text-gray-700">
+                  <label htmlFor="subject" className="mb-2 block text-sm font-medium text-foreground/80">
                     Subject *
                   </label>
                   <select
@@ -128,7 +128,7 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
                     required
                     value={form.subject}
                     onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900"
+                    className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-foreground"
                   >
                     <option value="">Select a subject</option>
                     <option value="order-inquiry">Order Inquiry</option>
@@ -141,7 +141,7 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="mb-2 block text-sm font-medium text-gray-700">
+                  <label htmlFor="message" className="mb-2 block text-sm font-medium text-foreground/80">
                     Message *
                   </label>
                   <Textarea
@@ -168,16 +168,16 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
         </div>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="surface-card">
             <CardHeader>
               <CardTitle>Get in Touch</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">
-                <Mail className="mt-1 h-5 w-5 text-blue-600" />
+                <Mail className="mt-1 h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium text-gray-900">Email</p>
-                  <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-700">
+                  <p className="font-medium text-foreground">Email</p>
+                  <a href={`mailto:${supportEmail}`} className="text-primary hover:text-primary/80">
                     {supportEmail}
                   </a>
                 </div>
@@ -186,7 +186,7 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
               <div className="flex items-start gap-3">
                 <Phone className="mt-1 h-5 w-5 text-green-600" />
                 <div>
-                  <p className="font-medium text-gray-900">Phone</p>
+                  <p className="font-medium text-foreground">Phone</p>
                   <a href="tel:+918810259676" className="text-green-600 hover:text-green-700">
                     +91 8810259676
                   </a>
@@ -196,8 +196,8 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
               <div className="flex items-start gap-3">
                 <MapPin className="mt-1 h-5 w-5 text-red-600" />
                 <div>
-                  <p className="font-medium text-gray-900">Address</p>
-                  <p className="text-gray-600">
+                  <p className="font-medium text-foreground">Address</p>
+                  <p className="text-muted-foreground">
                     H 34 Sector 12
                     <br />
                     Noida
@@ -210,8 +210,8 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
               <div className="flex items-start gap-3">
                 <Clock className="mt-1 h-5 w-5 text-violet-600" />
                 <div>
-                  <p className="font-medium text-gray-900">Business Hours</p>
-                  <p className="text-gray-600">
+                  <p className="font-medium text-foreground">Business Hours</p>
+                  <p className="text-muted-foreground">
                     Monday - Sunday
                     <br />
                     9:00 AM - 9:00 PM IST
@@ -221,7 +221,7 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="surface-card">
             <CardHeader>
               <CardTitle>Follow Us</CardTitle>
             </CardHeader>
@@ -236,27 +236,27 @@ export function ContactPageClient({ supportEmail }: { supportEmail: string }) {
                   <Instagram className="h-5 w-5" />
                 </a>
               </div>
-              <p className="mt-4 text-sm text-gray-600">
+              <p className="mt-4 text-sm text-muted-foreground">
                 Stay updated with our latest designs and offers.
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="surface-card">
             <CardHeader>
               <CardTitle>Quick Help</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Link href="/faq" className="block text-blue-600 transition-colors hover:text-blue-700">
+              <Link href="/faq" className="block text-primary transition-colors hover:text-primary/80">
                 Frequently Asked Questions
               </Link>
-              <Link href="/faq" className="block text-blue-600 transition-colors hover:text-blue-700">
+              <Link href="/faq" className="block text-primary transition-colors hover:text-primary/80">
                 Shipping and Delivery FAQs
               </Link>
-              <Link href="/faq" className="block text-blue-600 transition-colors hover:text-blue-700">
+              <Link href="/faq" className="block text-primary transition-colors hover:text-primary/80">
                 Returns and Exchanges FAQs
               </Link>
-              <Link href="/collections" className="block text-blue-600 transition-colors hover:text-blue-700">
+              <Link href="/collections" className="block text-primary transition-colors hover:text-primary/80">
                 Shop Collections
               </Link>
             </CardContent>

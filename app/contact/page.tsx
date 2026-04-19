@@ -78,13 +78,13 @@ export default function ContactPage() {
           __html: JSON.stringify(contactStructuredData),
         }}
       />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <SiteHeader currentPath="/contact" />
 
-        <div className="border-b border-gray-200 bg-white">
-          <div className="container mx-auto px-4 py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Contact Us</h1>
-            <p className="text-lg text-gray-600">
+        <div className="app-shell pt-6">
+          <div className="section-shell px-5 py-6 sm:px-6">
+            <h1 className="text-3xl font-extrabold lowercase text-foreground">Contact Us</h1>
+            <p className="text-lg text-muted-foreground">
               We'd love to hear from you. Get in touch with our team.
             </p>
           </div>

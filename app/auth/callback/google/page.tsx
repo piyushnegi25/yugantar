@@ -7,6 +7,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { sanitizeCallbackUrl } from "@/lib/security/validation";
+import { SiteHeader } from "@/components/site-header";
 
 function GoogleCallbackContent() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -98,11 +99,11 @@ function GoogleCallbackContent() {
   const getIcon = () => {
     switch (status) {
       case "loading":
-        return <Loader2 className="h-8 w-8 animate-spin text-blue-500" />;
+        return <Loader2 className="h-10 w-10 animate-spin text-primary" />;
       case "success":
-        return <CheckCircle className="h-8 w-8 text-green-500" />;
+        return <CheckCircle className="h-10 w-10 text-green-600" />;
       case "error":
-        return <XCircle className="h-8 w-8 text-red-500" />;
+        return <XCircle className="h-10 w-10 text-red-500" />;
     }
   };
 
@@ -118,33 +119,43 @@ function GoogleCallbackContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center space-y-4">
-            {getIcon()}
-            <h2 className="text-xl font-semibold text-center">{getTitle()}</h2>
-            <p className="text-sm text-gray-600 text-center">{message}</p>
-
-            {status === "error" && (
-              <div className="w-full space-y-2">
-                <Button asChild className="w-full">
-                  <Link href="/auth">Try Again</Link>
-                </Button>
-                <Button variant="outline" asChild className="w-full">
-                  <Link href="/">Go Home</Link>
-                </Button>
+    <div className="min-h-screen bg-background">
+      <SiteHeader showCart={false} />
+      <div className="app-shell flex items-center justify-center py-10 sm:py-14">
+        <Card className="surface-card w-full max-w-md overflow-hidden">
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted/70">
+                {getIcon()}
               </div>
-            )}
-
-            {status === "success" && (
-              <p className="text-xs text-gray-500 text-center">
-                You will be redirected automatically...
+              <p className="section-kicker">google oauth</p>
+              <h2 className="text-2xl font-extrabold lowercase text-foreground">
+                {getTitle()}
+              </h2>
+              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {message}
               </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
+              {status === "error" && (
+                <div className="w-full space-y-2 pt-1">
+                  <Button asChild className="cta-pill-primary w-full justify-center">
+                    <Link href="/auth">Try Again</Link>
+                  </Button>
+                  <Button variant="outline" asChild className="cta-pill w-full justify-center">
+                    <Link href="/">Go Home</Link>
+                  </Button>
+                </div>
+              )}
+
+              {status === "success" && (
+                <p className="rounded-full border border-border bg-muted/50 px-4 py-1.5 text-xs text-muted-foreground">
+                  You will be redirected automatically...
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -153,8 +164,8 @@ export default function GoogleCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       }
     >

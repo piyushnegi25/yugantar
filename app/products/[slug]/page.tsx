@@ -55,25 +55,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
     "M";
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background">
       <SiteHeader />
 
-      <div className="container mx-auto px-4 py-8 sm:py-10">
-        <nav className="mb-6 text-sm text-gray-600">
-          <Link href="/" className="hover:text-gray-900">
+      <div className="app-shell py-8 sm:py-10">
+        <nav className="mb-6 text-sm text-muted-foreground">
+          <Link href="/" className="hover:text-foreground">
             Home
           </Link>
           <span className="mx-2">/</span>
-          <Link href="/collections" className="hover:text-gray-900">
+          <Link href="/collections" className="hover:text-foreground">
             Collections
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-gray-900">{product.name}</span>
+          <span className="text-foreground">{product.name}</span>
         </nav>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section>
-            <Card>
+            <Card className="surface-card">
               <CardContent className="p-3 sm:p-4">
                 <ProductImageGallery images={images} alt={product.name} />
               </CardContent>
@@ -81,18 +81,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </section>
 
           <section>
-            <Card>
+            <Card className="surface-card">
               <CardContent className="space-y-5 p-4 sm:p-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                  <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
                     {product.name}
                   </h1>
                   <div className="mt-2 flex items-center gap-3">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-extrabold text-foreground">
                       ₹{product.price}
                     </span>
                     {product.originalPrice ? (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-sm text-muted-foreground line-through">
                         ₹{product.originalPrice}
                       </span>
                     ) : null}
@@ -110,10 +110,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <Separator />
 
                 <div>
-                  <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-600">
+                  <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     Description
                   </h2>
-                  <p className="text-sm leading-relaxed text-gray-700">
+                  <p className="text-sm leading-relaxed text-foreground/80">
                     {product.description}
                   </p>
                 </div>

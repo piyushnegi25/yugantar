@@ -52,43 +52,45 @@ export default function CustomTshirtPrintingIndiaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <SiteHeader currentPath="/custom-tshirt-printing-india" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="app-shell py-6 sm:py-8">
+        <div className="section-shell px-5 py-10 sm:px-6 sm:py-12">
+          <h1 className="text-3xl font-extrabold lowercase text-foreground sm:text-4xl">
             Custom T-Shirt Printing Online in India
           </h1>
-          <p className="mt-4 max-w-3xl text-gray-600">
+          <p className="mt-4 max-w-3xl text-muted-foreground">
             Turn your idea into wearable style. Upload your design, position the
             artwork, and order premium custom printed t-shirts with confidence.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/shipping">
-              <Button>Shipping Details</Button>
+              <Button variant="outline" className="cta-pill px-6">Shipping Details</Button>
             </Link>
             <Link href="/collections">
-              <Button variant="outline">Shop Collections</Button>
+              <Button className="cta-pill-primary px-6">Shop Collections</Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900">
+      <section className="app-shell py-4 pb-12 sm:py-6 sm:pb-14">
+        <div className="section-shell px-5 py-7 sm:px-6">
+        <h2 className="text-2xl font-semibold lowercase text-foreground">
           Best For Creators, Teams, and Gifting
         </h2>
-        <ul className="mt-4 space-y-3 text-gray-700">
+        <ul className="mt-4 space-y-3 text-foreground/80">
           <li>Personalized t-shirts for birthdays, events, and communities.</li>
           <li>Upload-ready workflow for your own artwork and text.</li>
           <li>Premium base tees for better comfort and print finish.</li>
           <li>India-wide delivery and support from order to dispatch.</li>
         </ul>
+        </div>
       </section>
     </main>
   );

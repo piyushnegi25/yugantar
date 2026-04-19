@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Package } from "lucide-react";
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 function SuccessContent() {
   const router = useRouter();
@@ -22,18 +23,20 @@ function SuccessContent() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50  flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <div className="app-shell flex items-center justify-center py-10">
+      <Card className="surface-card w-full max-w-md text-center">
         <CardHeader>
-          <div className="mx-auto w-16 h-16 bg-green-100  rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600 " />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <CardTitle className="text-2xl text-gray-900 ">
+          <CardTitle className="text-2xl font-extrabold lowercase text-foreground">
             Payment Successful!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-gray-600 ">
+          <p className="text-muted-foreground">
             Your order has been placed successfully.
             {orderId && (
               <>
@@ -42,11 +45,11 @@ function SuccessContent() {
               </>
             )}
           </p>
-          <p className="text-sm text-gray-500 ">
+          <p className="text-sm text-muted-foreground">
             Redirecting to your orders page in 3 seconds...
           </p>
           <div className="flex flex-col space-y-2">
-            <Button asChild>
+            <Button asChild className="cta-pill-primary">
               <Link
                 href="/orders"
                 className="flex items-center justify-center space-x-2"
@@ -61,6 +64,7 @@ function SuccessContent() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
@@ -69,8 +73,8 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50  flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
         </div>
       }
     >

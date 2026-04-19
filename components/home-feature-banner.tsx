@@ -94,33 +94,41 @@ export function HomeFeatureBanner() {
   }, []);
 
   return (
-    <section className="relative mt-10 h-[60vh] min-h-[360px] w-full overflow-hidden bg-muted sm:h-[66vh] md:h-[70vh]">
-      <Image
-        src={banner.src}
-        alt={banner.alt}
-        fill
-        className="object-cover object-top"
-        sizes="100vw"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-      <div className="absolute inset-0 flex flex-col items-center justify-end p-4 pb-12 text-center sm:pb-16 md:pb-20">
-        <h2 className="mb-3 text-[clamp(1.8rem,8vw,3.75rem)] font-bold uppercase tracking-[0.08em] text-white md:mb-4">
-          {banner.title}
-        </h2>
-        {banner.subtitle ? (
-          <p className="mb-6 max-w-2xl text-[clamp(0.9rem,3vw,1.125rem)] leading-relaxed text-white/90 md:mb-8">
-            {banner.subtitle}
-          </p>
-        ) : null}
-        <Link href={banner.linkUrl}>
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-11 rounded-none border-none bg-white px-6 text-sm font-bold uppercase tracking-[0.08em] text-black hover:bg-gray-100 hover:text-black sm:h-12 sm:px-8 sm:text-base md:px-10 md:text-lg"
-          >
-            {banner.ctaText}
-          </Button>
-        </Link>
+    <section className="app-shell mt-8 sm:mt-10">
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-primary px-5 py-8 sm:px-7 md:px-10 md:py-10">
+        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <p className="section-kicker text-primary-foreground/75">limited offer</p>
+            <h2 className="mt-3 max-w-xl text-[clamp(1.9rem,6vw,3.25rem)] font-extrabold lowercase leading-[1.03] text-primary-foreground">
+              {banner.title}
+            </h2>
+            {banner.subtitle ? (
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-primary-foreground/85 sm:text-base">
+                {banner.subtitle}
+              </p>
+            ) : null}
+            <div className="mt-6">
+              <Link href={banner.linkUrl} className="cta-pill inline-flex border border-white/20 bg-white text-foreground hover:bg-white/90">
+                {banner.ctaText}
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative md:col-span-5">
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-3xl border border-white/20 bg-white/10">
+              <Image
+                src={banner.src}
+                alt={banner.alt}
+                fill
+                className="object-cover object-top"
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+            </div>
+            <div className="absolute -left-1 -top-1 rounded-full border border-white/30 bg-white/20 px-4 py-2 text-xl font-bold text-white backdrop-blur">
+              60% OFF
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
